@@ -34,7 +34,6 @@
       z-index: 2;
     }
 
-    /* 所有正文内容：强制左对齐，禁用 justify */
     .welcome-text,
     .instructions,
     .section-content,
@@ -50,7 +49,6 @@
       margin-right: auto;
     }
 
-    /* 标题、按钮、徽章等仍居中 */
     h1,
     .result-title,
     .fortune-badge,
@@ -60,7 +58,6 @@
       text-align: center;
     }
 
-    /* 防止短标题孤字换行 */
     .result-title,
     .section-label {
       white-space: nowrap;
@@ -90,7 +87,7 @@
       color: #d4b77a;
       text-shadow: 0 0 12px rgba(160, 110, 100, 0.3);
       position: relative;
-      white-space: nowrap; /* 防止“塔罗日运 · 三重指引”断行 */
+      white-space: nowrap;
     }
 
     h1::after {
@@ -249,7 +246,6 @@
       font-weight: 600;
     }
 
-    /* 显示塔罗牌名 */
     .card-name {
       display: block;
       font-weight: 600;
@@ -366,7 +362,6 @@
       .result-title {
         font-size: 1.9em;
       }
-      /* 小屏允许 section-label 换行，但避免单字 */
       .section-label {
         white-space: normal;
         word-break: keep-all;
@@ -378,41 +373,36 @@
   <div id="particles"></div>
   
   <div class="container">
-    <!-- 欢迎页 -->
     <div id="welcome" class="screen active">
-      <h1>塔罗日运&nbsp;·&nbsp;三重指引</h1>
+      <h1>✦ 塔罗日运 · 三重指引 ✦</h1>
       <div class="welcome-text">
         欢迎你来到这里。<br><br>
         这三张牌不是预言，而是映照你内心的镜子——帮助你看见行动的方向、情绪的暗流，以及宇宙悄悄赠予的祝福。<br><br>
-        请带着好奇与温柔参与，但记得：<strong>真正的力量，始终在你心中。</strong><br><br>
+        请带着静心与观照来参与，但记得：<strong>真正的力量，始终在你心中。</strong><br><br>
         塔罗是工具，不是答案。愿你用它照见自己，而非依赖它代替选择。<br>
         每日一次，已是足够。
       </div>
       <button onclick="startStage('first')">开启今日指引</button>
     </div>
 
-    <!-- 第一抽：外在行动 -->
     <div id="firstDraw" class="screen">
       <h1>第一重&nbsp;·&nbsp;行动之牌</h1>
       <div class="instructions">哪一张在提醒你今日该迈出的一步？</div>
       <div class="cards-container" id="firstCards"></div>
     </div>
 
-    <!-- 第二抽：内在感受 -->
     <div id="secondDraw" class="screen">
       <h1>第二重&nbsp;·&nbsp;心灵之牌</h1>
       <div class="instructions">哪一张在轻抚你今日的情绪暗流？</div>
       <div class="cards-container" id="secondCards"></div>
     </div>
 
-    <!-- 第三抽：高维祝福 -->
     <div id="thirdDraw" class="screen third-draw">
       <h1>第三重&nbsp;·&nbsp;祝福之牌</h1>
       <div class="instructions">哪一张正为你洒下星光？</div>
       <div class="cards-container" id="thirdCards"></div>
     </div>
 
-    <!-- 结果页 -->
     <div id="combinedResult" class="screen">
       <div class="result-header">
         <div class="result-title">今日三重指引</div>
@@ -439,7 +429,7 @@
       <div class="combined-message" id="combinedMessage"></div>
 
       <div class="share-prompt">
-        若有所感，不妨将这份指引分享给需要的人。
+        若这段话轻轻碰到了你的心，愿它像一颗星子落入另一片夜空——有人正等着被这样的光温柔接住。
       </div>
 
       <a href="#" class="restart-link" onclick="restart()">重新开始</a>
@@ -448,28 +438,138 @@
 
   <script>
     const tarotCards = [
-      { name: "愚者", action: "勇敢尝试新事物，放下过度思虑，信任旅程的开始。", emotion: "内心充满好奇与自由，但也需警惕盲目冲动。", blessing: "宇宙支持你的探索，保持天真即是力量。" },
-      { name: "魔术师", action: "善用你手头的资源，主动创造改变。", emotion: "你拥有将想法变为现实的能力，请相信自己。", blessing: "天地能量为你所用，专注即能显化。" },
-      { name: "女祭司", action: "倾听直觉，暂停行动，先向内看。", emotion: "情绪深邃而敏感，秘密正在浮现。", blessing: "你被赋予洞察真相的能力，请信任内在声音。" },
-      { name: "皇后", action: "滋养自己与他人，关注身体与创造力的需求。", emotion: "丰盛与温柔环绕你，允许自己被爱。", blessing: "大地母亲正以丰饶回应你的付出。" },
-      { name: "皇帝", action: "建立结构，承担责任，做出坚定决定。", emotion: "你需要秩序与掌控感，请展现领导力。", blessing: "权威与稳定是你今日的护盾。" },
-      { name: "教皇", action: "寻求指导或传统智慧，尊重规则与仪式。", emotion: "你渴望归属与意义，信仰带来安心。", blessing: "更高智慧正通过导师或传统向你低语。" },
-      { name: "恋人", action: "做出忠于内心的选择，重视关系中的真诚。", emotion: "爱与连接是今日主题，和谐来自真实。", blessing: "宇宙祝福你的选择，无论关乎人或事。" },
-      { name: "战车", action: "坚定前行，驾驭矛盾，以意志力突破障碍。", emotion: "内在冲突存在，但你能整合对立面。", blessing: "胜利属于坚持方向而不失控的人。" },
-      { name: "力量", action: "以柔克刚，用耐心和同理心面对挑战。", emotion: "你拥有比想象中更强的内在韧性。", blessing: "勇气与慈悲同在，这是你最强大的时刻。" },
-      { name: "隐士", action: "独处反思，寻找属于自己的答案。", emotion: "感到孤独，但这是智慧沉淀的必经之路。", blessing: "灯已点亮，你终将照亮自己的方向。" },
-      { name: "命运之轮", action: "顺势而为，接受变化带来的转机。", emotion: "世事无常，但每一次转动都带来新可能。", blessing: "好运正在靠近，保持开放的心。" },
-      { name: "正义", action: "权衡利弊，做出公平且诚实的决定。", emotion: "你渴望平衡与因果的清晰，请正视真相。", blessing: "宇宙支持你回归正道，业力正在校准。" },
-      { name: "倒吊人", action: "暂停、牺牲短期利益，换一个角度看问题。", emotion: "看似受限，实则是转化的必要阶段。", blessing: "放手即获得，视角转换带来顿悟。" },
-      { name: "死神", action: "结束旧模式，勇敢告别不再服务你的事物。", emotion: "转变带来阵痛，但重生已在路上。", blessing: "死亡是幻象，新生正悄然萌芽。" },
-      { name: "节制", action: "调和矛盾，寻找中庸之道，耐心融合。", emotion: "内在节奏需要校准，请练习平衡。", blessing: "天使正引导你走向和谐与疗愈。" },
-      { name: "恶魔", action: "审视束缚你的欲望或习惯，夺回自由。", emotion: "恐惧与执念浮现，请看清它们的虚幻。", blessing: "觉察即解脱，你本就拥有挣脱的力量。" },
-      { name: "高塔", action: "接受突如其来的颠覆，重建更坚实的基础。", emotion: "震惊与混乱是暂时的，真相终将解放你。", blessing: "崩塌是为了清除虚假，让光进入。" },
-      { name: "星星", action: "怀抱希望，设定愿景，小步向前。", emotion: "心灵被疗愈，灵感如星光洒落。", blessing: "宇宙正以温柔守护你的梦想。" },
-      { name: "月亮", action: "警惕幻觉，区分直觉与恐惧。", emotion: "潜意识涌动，梦境或暗示值得关注。", blessing: "穿越迷雾后，你将获得深层智慧。" },
-      { name: "太阳", action: "尽情展现活力，享受成功与清晰。", emotion: "喜悦、自信与光明充满你的心。", blessing: "一切顺利，宇宙为你喝彩。" },
-      { name: "审判", action: "回应内心的召唤，做出觉醒的决定。", emotion: "你正经历重生，请拥抱新的身份。", blessing: "过去已赦免，未来正召唤你。" },
-      { name: "世界", action: "庆祝完成，整合经验，准备新循环。", emotion: "圆满与成就带来深层满足感。", blessing: "你已抵达一个终点，也是全然的新起点。" }
+      { 
+        name: "愚者", 
+        action: "迈出那一步前，不必看清整条路——风会托住你的脚跟。今天适合做一件“毫无理由但让你心跳加快”的小事，比如给旧友发一句“突然想起你”。你害怕的“不成熟”，恰是宇宙最珍视的天真。",
+        emotion: "内心涌动着一种近乎孩童般的信任，但背后藏着对失控的恐惧。允许自己暂时不知道答案，这本身就是一种智慧。",
+        blessing: "宇宙正以初生之眼凝视你，每一次尝试都被温柔记录。你不需要证明什么，存在即值得被爱。"
+      },
+      { 
+        name: "魔术师", 
+        action: "此刻你手边的每一样东西——时间、话语、一个念头——都是魔法的原料。选一件小事，全神贯注地完成它，让能量聚焦成形。",
+        emotion: "你比想象中更有创造力，只是常把“不够完美”当作停下的借口。真正的魔法始于行动，而非准备。",
+        blessing: "天地间的资源正悄然向你倾斜，只要你开口请求，或仅仅是清晰地想要。"
+      },
+      { 
+        name: "女祭司", 
+        action: "暂停向外寻找答案。今晚关灯静坐三分钟，问自己：“我真正知道的是什么？” 答案不在头脑里，在身体深处。",
+        emotion: "有些情绪你不敢命名，因为一旦说出，现实就会改变。但沉默的直觉比喧嚣的逻辑更接近真相。",
+        blessing: "月光已为你铺好秘径，那些未被言说的秘密，终将成为你独有的力量源泉。"
+      },
+      { 
+        name: "皇后", 
+        action: "为自己准备一顿用心的餐食，哪怕只是一碗热汤。滋养不是奢侈，是你与大地签订的温柔契约。",
+        emotion: "你渴望被照顾，却总先去照顾他人。今天，请把那份温柔先留给自己——你值得被丰盛包围。",
+        blessing: "花园正在你体内绽放，每一朵花都是你曾给予世界的爱，如今回流成养分。"
+      },
+      { 
+        name: "皇帝", 
+        action: "设定一个清晰的小边界，比如“下午三点前不回工作消息”。秩序不是束缚，而是你为自己搭建的安全屋。",
+        emotion: "你试图掌控一切，是因为害怕失控带来伤害。但真正的稳定，来自内在的坚定，而非外在的控制。",
+        blessing: "山岳般的稳定能量正从地心升起，支撑你成为自己王国的仁慈君主。"
+      },
+      { 
+        name: "教皇", 
+        action: "重读一段曾深深触动你的文字，或联系一位你敬重的长者。智慧常以旧形式，传递新启示。",
+        emotion: "你在寻求归属，但真正的信仰始于忠于自己的节奏，而非迎合他人的期待。",
+        blessing: "古老的声音正穿越时空低语：你走的路，早有人为你点过灯。"
+      },
+      { 
+        name: "恋人", 
+        action: "做一次只忠于内心的选择，哪怕无人理解。可以是穿一件久违的衣服，或拒绝一个勉强的邀约。",
+        emotion: "关系中的拉扯，往往源于你与自己的分裂。当你完整，连接自然和谐。",
+        blessing: "宇宙正以爱的频率共振，所有真诚的选择，都会吸引同频的回应。"
+      },
+      { 
+        name: "战车", 
+        action: "面对两个矛盾的愿望时，别急着选边。先承认它们都真实存在，然后问：“哪个更贴近我此刻的生命方向？”",
+        emotion: "你体内有两股力量在拉扯，但驾驭它们的缰绳，始终在你手中。胜利属于不放弃任何一部分自己的人。",
+        blessing: "星辰已为你校准方向，冲突不是障碍，而是整合的邀请函。"
+      },
+      { 
+        name: "力量", 
+        action: "当感到愤怒或无力时，把手放在心口，深呼吸三次，对自己说：“我选择温柔，而非控制。”",
+        emotion: "真正的勇气不是压制情绪，而是带着脆弱依然前行。你的柔软，比坚硬更有穿透力。",
+        blessing: "狮子正安静伏在你脚边——它认出你灵魂深处的王者之息。"
+      },
+      { 
+        name: "隐士", 
+        action: "给自己一小时“神圣独处”：关掉通知，点一支蜡烛，写下一个你从未告诉别人的问题。",
+        emotion: "孤独感并非空洞，而是灵魂在清理空间，为更深的智慧腾出位置。黑暗中有光，只是你还没适应它的眼睛。",
+        blessing: "提灯者从不孤单，因为光本身就是同伴。你的内省，正在照亮后来者的路。"
+      },
+      { 
+        name: "命运之轮", 
+        action: "留意今天出现的“巧合”——错过的车、突然的来电、重复的数字。它们不是偶然，是宇宙在调整你的航向。",
+        emotion: "变化让你不安，但轮转的本质不是失去，而是让不适合的离开，为更适合的腾出位置。",
+        blessing: "好运的齿轮已开始转动，你只需保持开放，而非用力推动。"
+      },
+      { 
+        name: "正义", 
+        action: "审视一个悬而未决的决定，问自己：“如果剥离所有情绪，事实是什么？” 然后，诚实面对答案。",
+        emotion: "你渴望公平，但真正的平衡始于对自己诚实。逃避真相，只会延长痛苦。",
+        blessing: "天平两端终将归零，你所经历的每一份失衡，都在校准灵魂的精准度。"
+      },
+      { 
+        name: "倒吊人", 
+        action: "主动暂停一件你急于推进的事。不是放弃，而是换个角度观察——有时后退一步，才能看见全景。",
+        emotion: "牺牲感让你疲惫，但自愿的暂停不是损失，而是为跃升积蓄势能。你挂在那里，是为了看清地面之外的天空。",
+        blessing: "倒置的世界里，你反而看得最清。这份“悬停”，是宇宙赐予的珍贵视角。"
+      },
+      { 
+        name: "死神", 
+        action: "写下一件你明知该结束却拖延的事，然后撕碎它。仪式感不是迷信，是向潜意识宣告：我准备好了。",
+        emotion: "告别带来哀伤，但死亡只是形态的转换。你放下的壳，将成为新生的土壤。",
+        blessing: "凤凰的灰烬里藏着金种——你经历的每一次“死去”，都在为重生编码。"
+      },
+      { 
+        name: "节制", 
+        action: "混合两种对立的东西：比如在咖啡里加一点盐，或在严肃计划中留出空白。和谐生于交融，而非隔离。",
+        emotion: "你习惯非黑即白，但生命最美的色彩，诞生于灰色地带。允许自己同时持有矛盾，而不急于解决。",
+        blessing: "天使正将你的泪水与欢笑调和成圣水——两者都是你完整的必需品。"
+      },
+      { 
+        name: "恶魔", 
+        action: "识别一个你反复陷入的模式（比如熬夜、自我批评），今天只做一件事：觉察它，而不评判自己。",
+        emotion: "你以为的“自由”，可能是隐形的锁链。但看清链条的那一刻，钥匙已在你掌心。",
+        blessing: "阴影不是敌人，而是被遗忘的自己。拥抱它，你便夺回全部力量。"
+      },
+      { 
+        name: "高塔", 
+        action: "当意外发生时，先深呼吸十秒，再行动。崩塌不是惩罚，而是系统在强制升级。",
+        emotion: "震惊之下藏着解脱——那些你以为必须守护的，或许早已不再属于你。废墟之上，才有新建筑的空间。",
+        blessing: "闪电劈开虚假的屋顶，只为让真实的星光照进你的眼睛。"
+      },
+      { 
+        name: "星星", 
+        action: "睡前写下三个微小愿望，不必宏大，比如“明天阳光正好”。希望不是幻想，而是对未来的温柔预约。",
+        emotion: "即使世界灰暗，你心中仍有光点未灭。信任它，哪怕微弱，也足以导航黑夜。",
+        blessing: "宇宙正以星光为你织毯，每一颗闪烁，都是对你信念的回应。"
+      },
+      { 
+        name: "月亮", 
+        action: "记录一个反复出现的梦境或念头，不分析，只观察。潜意识正用隐喻向你传递地图。",
+        emotion: "恐惧常披着“现实”的外衣，但潮汐会退去，露出真实的海岸。你不需要立刻看清，只需不转身逃跑。",
+        blessing: "迷雾是试炼，也是保护。当你穿越它，带回的不是答案，而是更深的信任。"
+      },
+      { 
+        name: "太阳", 
+        action: "走到户外，让阳光照在脸上至少五分钟。光明不仅是能量，更是对你存在的肯定。",
+        emotion: "喜悦如此简单，却常被你忽略。今天，请允许自己毫无理由地开心——这本身就是一种神圣。",
+        blessing: "太阳从不怀疑自己是否值得升起，你也一样。你的光芒，本就不需许可。"
+      },
+      { 
+        name: "审判", 
+        action: "问自己：“如果此刻是人生终点，我会后悔没做什么？” 然后，做那件最小的事来回应。",
+        emotion: "召唤声已在内心响起，逃避只会让回响更刺耳。觉醒不是顿悟，而是每天选择忠于真我。",
+        blessing: "号角吹响，不是为了审判过去，而是邀请你以全新身份，踏入下一章。"
+      },
+      { 
+        name: "世界", 
+        action: "庆祝一件你完成的小事，哪怕只是整理了书桌。圆满不在远方，就在此刻你手中的成果里。",
+        emotion: "你总想着“下一步”，却忘了环顾已完成的旅程。停下，鞠躬，感谢这一圈的自己。",
+        blessing: "舞者已站在圆心——你走过的每一步，都编织成了此刻的桂冠。"
+      }
     ];
 
     let selections = {};
@@ -526,7 +626,6 @@
 
       document.getElementById('overallFortune').textContent = fortuneText;
 
-      // 渲染带牌名的内容
       document.getElementById('actionContent').innerHTML = `<span class="card-name">${action.name}</span><p>${preventOrphans(action.action)}</p>`;
       document.getElementById('emotionContent').innerHTML = `<span class="card-name">${emotion.name}</span><p>${preventOrphans(emotion.emotion)}</p>`;
       document.getElementById('blessingContent').innerHTML = `<span class="card-name">${blessing.name}</span><p>${preventOrphans(blessing.blessing)}</p>`;

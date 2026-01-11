@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>塔罗日运</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Serif SC', serif;
+      background: #1a0b2e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath d='M20,20 Q100,5 180,20 T180,180 M20,180 Q100,195 180,180' stroke='%233a2a4a' stroke-width='0.8' fill='none' opacity='0.15'/%3E%3Ccircle cx='100' cy='100' r='80' stroke='%234a355a' stroke-width='1' fill='none' opacity='0.1'/%3E%3C/svg%3E");
+      color: #e8d8f0;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .screen {
+      display: none;
+      padding: 50px 30px;
+      animation: fadeInBook 0.9s ease-out forwards;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeInBook {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.6em;
+      margin-bottom: 25px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #d4b77a;
+      text-shadow: 0 0 12px rgba(160, 110, 100, 0.3);
+      position: relative;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, #c9a968, transparent);
+      margin: 12px auto 0;
+    }
+
+    /* ———— 诗歌式引导文案 ———— */
+    .poem {
+      margin: 28px auto;
+      font-size: 1.15em;
+      line-height: 1.9;
+      color: #e0c9a8;
+      max-width: 480px;
+      font-style: italic;
+      text-align: center;
+    }
+
+    .poem-line {
+      display: block;
+      margin: 8px 0;
+    }
+
+    .poem-line:nth-child(1) { margin-top: 16px; }
+    .poem-line:nth-child(2) { margin-top: 4px; }
+    .poem-line:nth-child(3) { margin-top: 20px; color: #c9a968; }
+    .poem-line:nth-child(4) { margin-top: 4px; color: #c9a968; }
+    .poem-line:nth-child(5) { margin-top: 16px; font-style: normal; color: #d0bfcf; }
+
+    .instructions {
+      margin: 24px auto;
+      font-size: 1.05em;
+      color: #c9a968;
+      font-style: italic;
+      max-width: 460px;
+      line-height: 1.6;
+    }
+
+    /* —————— 抽牌页：卡片容器与牌背样式 —————— */
+    .cards-container {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
+    .card-back {
+      width: 80px;
+      height: 130px;
+      background: linear-gradient(135deg, #2c1a4d, #1a0b2e);
+      border: 2px solid #8a6a9a;
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card-back::before {
+      content: "🂠";
+      font-size: 32px;
+      color: #c9a968;
+      opacity: 0.7;
+    }
+
+    .card-back:hover {
+      transform: translateY(-8px) scale(1.05);
+      border-color: #c9a968;
+      box-shadow: 0 8px 18px rgba(201, 169, 104, 0.3);
+      background: linear-gradient(135deg, #35225a, #22123a);
+    }
+
+    @media (max-width: 480px) {
+      .card-back {
+        width: 70px;
+        height: 115px;
+      }
+    }
+
+    /* —————— 结果页 —————— */
+    .result-header {
+      position: relative;
+      margin-bottom: 30px;
+    }
+
+    .result-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2em;
+      color: #d4b77a;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+    }
+
+    .fortune-badge {
+      display: inline-block;
+      padding: 8px 24px;
+      background: #25143d;
+      border: 1px solid #8a6a9a;
+      border-radius: 30px;
+      font-size: 1.15em;
+      color: #e0c9a8;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-top: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, #c9a968, transparent);
+      margin: 28px 0;
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .result-section {
+      background: rgba(30, 18, 45, 0.7);
+      border: 1px solid #5a4070;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 22px 0;
+      text-align: left;
+      position: relative;
+    }
+
+    .section-label {
+      font-size: 1.1em;
+      color: #c9a968;
+      margin-bottom: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .section-content {
+      font-size: 1.08em;
+      line-height: 1.85;
+      color: #e8d8f0;
+    }
+
+    .section-content strong {
+      color: #d4b77a;
+      font-weight: 600;
+    }
+
+    .combined-message {
+      background: rgba(20, 10, 30, 0.85);
+      border-left: 4px solid #c9a968;
+      padding: 20px;
+      margin: 28px 0;
+      font-style: italic;
+      color: #f0e0d0;
+      border-radius: 0 10px 10px 0;
+    }
+
+    .share-prompt {
+      margin-top: 35px;
+      font-size: 1.15em;
+      color: #d4b77a;
+      font-style: italic;
+      line-height: 1.6;
+      padding: 16px;
+      background: rgba(15, 8, 25, 0.6);
+      border-radius: 12px;
+      border: 1px dashed #5a4070;
+    }
+
+    .share-prompt::before,
+    .share-prompt::after {
+      content: "✦";
+      margin: 0 8px;
+      color: #c9a968;
+    }
+
+    button {
+      margin-top: 32px;
+      padding: 16px 0;
+      width: 80%;
+      background: linear-gradient(135deg, #5a4070, #25143d);
+      color: #e8d8f0;
+      border: 1px solid #8a6a9a;
+      border-radius: 30px;
+      font-size: 1.12em;
+      cursor: pointer;
+      transition: all 0.35s;
+      font-family: 'Noto Serif SC', serif;
+      letter-spacing: 1.2px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #6a5080, #35244d);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
+      border-color: #a080b0;
+    }
+
+    .restart-link {
+      display: inline-block;
+      margin-top: 30px;
+      color: #c9a968;
+      text-decoration: none;
+      font-size: 1.1em;
+      font-style: italic;
+      letter-spacing: 1px;
+    }
+
+    .restart-link:hover {
+      text-decoration: underline;
+      color: #d4b77a;
+    }
+
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: #c9a968;
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles"></div>
+  
+  <div class="container">
+    <div id="welcome" class="screen active">
+      <h1>塔罗日运</h1>
+      <div class="poem">
+        <span class="poem-line">星河流转，牌面只为你显影一次</span>
+        <span class="poem-line">心有所问，便轻轻一触</span>
+        <span class="poem-line">塔罗是映照内心的镜，而非预言的工具</span>
+        <span class="poem-line">每日最多抽取三次，让答案在静默中生长</span>
+        <span class="poem-line">别急着追问未来——你此刻的觉察，已是光</span>
+      </div>
+      <button onclick="startShuffle('first')">开启今日指引</button>
+    </div>
+
+    <div id="firstDraw" class="screen">
+      <h1>择一牌</h1>
+      <div class="instructions">哪一张在呼唤你的名字？</div>
+      <div class="cards-container" id="firstCards"></div>
+    </div>
+
+    <div id="secondDraw" class="screen">
+      <h1>再择一牌</h1>
+      <div class="instructions">让能量完整流动</div>
+      <div class="cards-container" id="secondCards"></div>
+    </div>
+
+    <div id="combinedResult" class="screen">
+      <div class="result-header">
+        <div class="result-title">今日塔罗指引</div>
+        <div class="fortune-badge" id="overallFortune"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-label">✨ 显化之牌</div>
+        <div class="section-content" id="mainCardText"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-label">🌙 潜流之牌</div>
+        <div class="section-content" id="supportCardText"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="combined-message" id="combinedMessage"></div>
+
+      <div class="share-prompt">
+        牌面只为你显现。<br>
+        若你愿意分享，光便多照一人。
+      </div>
+
+      <a href="#" class="restart-link" onclick="showScreen('welcome'); return false;">
+        明日再来。
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // —————— 页面切换工具函数 ——————
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // 粒子动效
+    const particlesContainer = document.getElementById('particles');
+    function createParticles(x, y) {
+      const colors = ['#c9a968', '#d4b77a', '#a68560'];
+      for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particlesContainer.appendChild(particle);
+
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 70 + Math.random() * 100;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+
+        let opacity = 1;
+        let size = 2 + Math.random() * 3;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+
+        const startTime = performance.now();
+        const animate = (currentTime) => {
+          const elapsed = (currentTime - startTime) / 1000;
+          const progress = Math.min(elapsed / 1.2, 1);
+          const currentX = x + vx * elapsed;
+          const currentY = y + vy * elapsed;
+          opacity = 1 - progress;
+          particle.style.opacity = opacity;
+          particle.style.transform = `translate(${currentX - x}px, ${currentY - y}px)`;
+          if (opacity > 0) {
+            requestAnimationFrame(animate);
+          } else {
+            particle.remove();
+          }
+        };
+        requestAnimationFrame(animate);
+      }
+    }
+
+    const tarotCards = [
+      { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。<br><br>宇宙正为你铺一条看不见的路，只需相信脚下的土地。<br><br>此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
+      { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。<br><br>今日，你的意图会快速成形，请清晰地说出你想要什么。<br><br>整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
+      { name: "女祭司", symbol: "🌙", fortuneLevel: 2, insight: "直觉", text: "内心有个轻柔的声音，请多听它一会儿。<br><br>答案不在远方，而在你呼吸的间隙里。<br><br>闭眼三次深呼吸，问自己：“此刻，我真正需要什么？”" },
+      { name: "皇后", symbol: "🌸", fortuneLevel: 3, insight: "滋养", text: "今日，请像对待挚友一样对待自己。<br><br>你的存在本身，就是一种丰盛。允许自己被温柔包围。<br><br>泡一杯热饮，双手捧住，感受暖意从掌心流向全身。" },
+      { name: "皇帝", symbol: "👑", fortuneLevel: 2, insight: "稳定", text: "结构不是束缚，而是让你安心飞翔的支架。<br><br>今日适合规划、设立边界，或完成一件拖延的小事。<br><br>写下今日三件必做小事，完成后轻轻划掉，给自己一个无声的掌声。" },
+      { name: "教皇", symbol: "⛪", fortuneLevel: 2, insight: "智慧", text: "有人正默默支持你，或一段旧知识将突然照亮你。<br><br>向内求，也向外学，两者皆是光。<br><br>重读一段曾激励你的文字，让它再次流入心里。" },
+      { name: "恋人", symbol: "❤️", fortuneLevel: 3, insight: "选择", text: "无论面对人、事或方向，忠于内心就是最好的答案。<br><br>爱，始于对自己诚实。<br><br>把手放在心口，轻声说：“我选择你，我的真实。”" },
+      { name: "战车", symbol: "⚔️", fortuneLevel: 2, insight: "前行", text: "内在有些拉扯，但你有能力驾驭它们。<br><br>不必完美平衡，只要方向坚定，就能前进。<br><br>选一件想推进的事，现在就做第一步——哪怕只花两分钟。" },
+      { name: "力量", symbol: "🦁", fortuneLevel: 3, insight: "温柔之力", text: "真正的勇气，是带着脆弱依然前行。<br><br>你比想象中更坚韧，也更柔软。<br><br>对今天的自己说：“辛苦了，但我为你骄傲。”" },
+      { name: "隐士", symbol: "🕯️", fortuneLevel: 1, insight: "内观", text: "今日适合慢下来，点一盏内在的灯。<br><br>独处不是孤独，而是与自己重逢。<br><br>关掉屏幕五分钟，静静坐着，只陪自己。" },
+      { name: "命运之轮", symbol: "🌀", fortuneLevel: 2, insight: "转机", text: "变化正在发生，风向已转。<br><br>放手那些不再服务你的，新的已在路上。<br><br>打开窗户，深吸一口气，默念：“我欢迎新的可能。”" },
+      { name: "正义", symbol: "⚖️", fortuneLevel: 2, insight: "平衡", text: "今日适合做决定、修复关系，或为自己正名。<br><br>公正，始于对自己的宽恕。<br><br>写下一句想对自己说的公平话，比如：“那时，你已经尽力了。”" },
+      { name: "倒吊人", symbol: "🙃", fortuneLevel: 1, insight: "暂停", text: "看似停滞，实则是为看清全局。<br><br>换个角度看问题，答案自然浮现。<br><br>躺下看天花板，让思绪自由飘一会儿。" },
+      { name: "死神", symbol: "💀", fortuneLevel: 1, insight: "新生", text: "结束是为了腾出空间给更好的。<br><br>今日，放下一件旧包袱，哪怕只是心里的一句执念。<br><br>在纸上写下一个想放下的念头，然后撕碎（或安全地烧掉），让风带走它。" },
+      { name: "节制", symbol: "💧", fortuneLevel: 2, insight: "调和", text: "快与慢、动与静，今日需要你找到中间点。<br><br>节奏对了，一切都会流动起来。<br><br>做一件事时，刻意放慢一半速度，感受其中的韵律。" },
+      { name: "恶魔", symbol: "👹", fortuneLevel: 0, insight: "释放", text: "你被什么困住了？其实，钥匙一直在你手中。<br><br>承认它，命名它，你就已开始自由。<br><br>轻声说出那个困扰你的词，然后深呼吸三次，想象它随呼气离开。" },
+      { name: "高塔", symbol: "⚡", fortuneLevel: 0, insight: "觉醒", text: "突如其来的变化，其实在帮你打破幻象。<br><br>废墟之下，藏着你真正需要的基石。<br><br>找出今日仍安稳存在的三件事（如呼吸、阳光、一杯水），感恩它们。" },
+      { name: "星星", symbol: "🌟", fortuneLevel: 3, insight: "希望", text: "黑暗中有光，而你就是其中之一。<br><br>今日，请相信：美好正在靠近，包括你内心的平静。<br><br>抬头看天空（白天或夜晚），默念：“我属于这浩瀚，也被它守护。”" },
+      { name: "月亮", symbol: "🌙", fortuneLevel: 1, insight: "信任", text: "有些事情还不清晰，没关系。<br><br>跟随直觉走一小步，雾就会散开一点。<br><br>把手放在腹部，问：“下一步，往哪？” 然后跟随第一个冲动。" },
+      { name: "太阳", symbol: "☀️", fortuneLevel: 3, insight: "喜悦", text: "今日充满光明与活力！允许自己开心，无需理由。<br><br>你的笑容，本身就是一种疗愈。<br><br>对着镜子微笑5秒，哪怕假装——身体会记住这份光。" },
+      { name: "审判", symbol: "🔔", fortuneLevel: 2, insight: "重生", text: "一个新篇章正在开启。你准备好了。<br><br>过去的经验，将成为你新生的翅膀。<br><br>写下“我已准备好迎接______”，填上你期待的新开始。" },
+      { name: "世界", symbol: "🌍", fortuneLevel: 3, insight: "圆满", text: "今日，你站在一个阶段的终点，也是新循环的起点。<br><br>你做得很好，真的很好。<br><br>双手合十于胸前，轻声说：“谢谢这一程的自己。”" }
+    ];
+
+    const fortunePhrases = {
+      3: ["✨ 光芒满溢之日", "🌟 宇宙与你同频", "💫 心愿共振时刻", "🌞 内在太阳升起"],
+      2: ["🌿 顺流而行之日", "🕊️ 平稳中见希望", "🫶 小确幸将至", "🍃 心静自然明朗"],
+      1: ["🕯️ 静待花开之日", "🌫️ 迷雾中有微光", "🌱 根系悄然生长", "🌊 潜流蓄力之时"],
+      0: ["🌑 暗处育光之日", "🪨 重建根基之时", "🌧️ 雨后自有虹"]
+    };
+
+    let firstCard = null;
+    let secondCard = null;
+
+    function startShuffle(stage) {
+      let candidates = [];
+      let used = new Set();
+      while (candidates.length < 3) {
+        let card = tarotCards[Math.floor(Math.random() * tarotCards.length)];
+        if (!used.has(card.name)) {
+          used.add(card.name);
+          candidates.push(card);
+        }
+      }
+
+      const containerId = stage === 'first' ? 'firstCards' : 'secondCards';
+      const screenId = stage === 'first' ? 'firstDraw' : 'secondDraw';
+
+      showScreen(screenId);
+
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      candidates.forEach((card, index) => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card-back';
+        cardEl.onclick = (e) => {
+          const rect = cardEl.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top + rect.height / 2;
+          createParticles(x, y);
+          selectCard(card, stage);
+        };
+        container.appendChild(cardEl);
+      });
+    }
+
+    function selectCard(card, stage) {
+      if (stage === 'first') {
+        firstCard = card;
+        setTimeout(() => startShuffle('second'), 300);
+      } else {
+        secondCard = card;
+        showResult();
+      }
+    }
+
+    function getOverallFortune(l1, l2) {
+      const maxL = Math.max(l1, l2);
+      const minL = Math.min(l1, l2);
+      let level = maxL === 3 ? 3 : (maxL === 2 ? 2 : (minL <= 0 && maxL <= 1 ? 0 : 1));
+      const pool = fortunePhrases[level];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function generateCombinedMessage(card1, card2) {
+      const messages = [
+        `当「${card1.insight}」遇见「${card2.insight}」，能量交织成光：<br>外在行动与内在节奏，正达成神圣和谐。`,
+        `「${card1.insight}」点燃火种，「${card2.insight}」护持微光。<br>今日，你既是旅人，也是归处。`,
+        `塔罗借这两张牌低语：<br>你已被看见，被支持，被深深祝福着。`,
+        `刚柔并济，动静相生——<br>这正是你今日最强大的状态。`,
+        `不必追问意义，<br>你此刻的存在，已是答案。`
+      ];
+      return messages[Math.floor(Math.random() * messages.length)];
+    }
+
+    function showResult() {
+      const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel);
+      const combinedGuidance = generateCombinedMessage(firstCard, secondCard);
+
+      document.getElementById('overallFortune').textContent = overall;
+      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong><br>${firstCard.text}`;
+      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong><br>${secondCard.text}`;
+      document.getElementById('combinedMessage').innerHTML = combinedGuidance;
+
+      showScreen('combinedResult');
+    }
+  </script>
+</body>
+</html>

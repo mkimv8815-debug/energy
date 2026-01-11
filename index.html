@@ -140,11 +140,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      /* 启用呼吸发光 */
       animation: pulseGlow 4s infinite ease-in-out;
     }
 
-    /* 🌟 动态呼吸发光动画 */
     @keyframes pulseGlow {
       0%, 100% {
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5),
@@ -156,7 +154,6 @@
       }
     }
 
-    /* ✅ 使用 SVG “生命之种” 作为卡背图标 */
     .card-back::before {
       content: "";
       display: block;
@@ -175,7 +172,7 @@
       box-shadow: 0 10px 20px rgba(201, 169, 104, 0.6),
                   0 0 25px rgba(201, 169, 104, 0.7);
       background: linear-gradient(135deg, #35225a, #22123a);
-      animation-play-state: paused; /* 悬停时暂停呼吸动画 */
+      animation-play-state: paused;
     }
 
     @media (max-width: 480px) {
@@ -227,7 +224,6 @@
       background: rgba(30, 18, 45, 0.7);
       border: 1px solid #5a4070;
       border-radius: 16px;
-      /* ✅ 增强呼吸感：增大内边距和外边距 */
       padding: 32px 28px;
       margin: 36px 0;
       text-align: left;
@@ -262,7 +258,6 @@
       font-weight: 600;
     }
 
-    /* ✅ 强化卡名视觉层次 */
     .card-name {
       display: block;
       font-weight: 700;
@@ -282,15 +277,26 @@
       margin-top: 6px;
     }
 
+    /* ✅ 关键修复：增强 combined-message 的呼吸感 */
     .combined-message {
       background: rgba(20, 10, 30, 0.85);
       border-left: 4px solid #c9a968;
-      padding: 24px !important;
-      margin: 40px 0;
+      padding: 32px !important; /* 增加内边距 */
+      margin: 45px 0;
       font-style: italic;
       color: #f0e0d0;
-      border-radius: 0 10px 10px 0;
-      line-height: 1.8;
+      border-radius: 0 12px 12px 0;
+      line-height: 1.9; /* 略增行高 */
+      text-align: left;
+    }
+
+    .combined-message p {
+      margin: 1.4em 0; /* 段落间距加大 */
+    }
+
+    .combined-message strong {
+      color: #d4b77a;
+      font-weight: 600;
     }
 
     .share-prompt {
@@ -387,6 +393,9 @@
         font-size: 1em;
         line-height: 1.75;
         padding: 0 10px;
+      }
+      .combined-message {
+        padding: 24px !important;
       }
       .result-title {
         font-size: 1.9em;
@@ -631,24 +640,39 @@
       shuffled.forEach(card => {
         const cardEl = document.createElement('div');
         cardEl.className = 'card-back';
+        // ✅ 传递当前阶段和卡片
         cardEl.onclick = () => selectCard(stage, card);
         container.appendChild(cardEl);
       });
     }
 
+    // ✅【终极修复】统一处理选择逻辑
     function selectCard(stage, card) {
+      // 保存选择
       selections[stage] = card;
-      if (stage === 'first') {
-        startStage('second');
-      } else if (stage === 'second') {
-        startStage('third');
-      } else if (stage === 'third') {
+
+      // 检查是否三张都已选（first, second, third 都存在）
+      const hasFirst = selections.hasOwnProperty('first');
+      const hasSecond = selections.hasOwnProperty('second');
+      const hasThird = selections.hasOwnProperty('third');
+
+      if (hasFirst && hasSecond && hasThird) {
+        // 三张齐全，直接显示结果
         showResult();
+      } else {
+        // 否则，按顺序进入下一阶段
+        if (stage === 'first') {
+          startStage('second');
+        } else if (stage === 'second') {
+          startStage('third');
+        }
+        // 如果是 third 但未齐全（理论上不会发生），不跳转
       }
     }
 
-    function preventOrphans(str) {
-      return str.replace(/(\S+)\s+(\S+)$/g, '$1&nbsp;$2');
+    function safeWrapParagraphs(text) {
+      if (!text) return '';
+      return '<p>' + text.replace(/\n\n/g, '</p><p>') + '</p>';
     }
 
     function showResult() {
@@ -656,30 +680,37 @@
       const emotion = selections.second;
       const blessing = selections.third;
 
-      // ✅ 更新运势判断逻辑：使用诗意短语
+      if (!action || !emotion || !blessing) {
+        console.error('Missing card selection');
+        return;
+      }
+
       const positiveCards = ['魔术师','皇后','恋人','战车','力量','命运之轮','节制','星星','太阳','世界'];
       const count = [action, emotion, blessing].filter(c => positiveCards.includes(c.name)).length;
 
       let fortuneText;
       if (count === 3) {
-        fortuneText = '内在太阳升起 🌞'; // 极佳
+        fortuneText = '内在太阳升起 🌞';
       } else if (count === 2) {
-        fortuneText = '星辰为你低语 ✨'; // 吉星高照
+        fortuneText = '星辰为你低语 ✨';
       } else if (count === 1) {
-        fortuneText = '微光已在路上 🌞'; // 稳中有进
+        fortuneText = '微光已在路上 🌞';
       } else {
-        fortuneText = '静待月升之时 🌙'; // 静待转机
+        fortuneText = '静待月升之时 🌙';
       }
 
       document.getElementById('overallFortune').textContent = fortuneText;
 
-      document.getElementById('actionContent').innerHTML = `<span class="card-name">${action.name}</span><p>${preventOrphans(action.action)}</p>`;
-      document.getElementById('emotionContent').innerHTML = `<span class="card-name">${emotion.name}</span><p>${preventOrphans(emotion.emotion)}</p>`;
-      document.getElementById('blessingContent').innerHTML = `<span class="card-name">${blessing.name}</span><p>${preventOrphans(blessing.blessing)}</p>`;
+      document.getElementById('actionContent').innerHTML = `<span class="card-name">${action.name}</span>` + safeWrapParagraphs(action.action);
+      document.getElementById('emotionContent').innerHTML = `<span class="card-name">${emotion.name}</span>` + safeWrapParagraphs(emotion.emotion);
+      document.getElementById('blessingContent').innerHTML = `<span class="card-name">${blessing.name}</span>` + safeWrapParagraphs(blessing.blessing);
 
-      const combined = `今日，${action.name}引领你行动，${emotion.name}映照你内心，而${blessing.name}为你加冕。三者交织，形成独特能量场：外在需${action.name === '隐士' || action.name === '倒吊人' ? '内省' : '前行'}，内在宜${emotion.name === '力量' || emotion.name === '太阳' ? '坚定' : '流动'}，宇宙正以${blessing.name}的方式默默护持你。`;
-      document.getElementById('combinedMessage').innerHTML = `<p>${preventOrphans(combined)}</p>`;
+      const part1 = `今日，${action.name}为你指明行动的方向，${emotion.name}轻抚你内心的波澜，而${blessing.name}则在暗处默默为你洒下祝福的光尘。`;
+      const part2 = `<strong>这三股能量交织成你今日的命运织锦。</strong>无论顺流或逆流，请相信：你正走在被支持的路上。`;
 
+      document.getElementById('combinedMessage').innerHTML = `<p>${part1}</p><p>${part2}</p>`;
+      
+      // 显示结果页
       hideAllScreens();
       document.getElementById('combinedResult').classList.add('active');
     }

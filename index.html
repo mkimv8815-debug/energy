@@ -34,6 +34,20 @@
       z-index: 2;
     }
 
+    /* —————— 全局中文排版优化 —————— */
+    .container,
+    .poem,
+    .instructions,
+    .section-content,
+    .combined-message,
+    .share-prompt {
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      hyphens: auto;
+      -webkit-hyphens: auto;
+      -ms-hyphens: auto;
+    }
+
     .screen {
       display: none;
       padding: 50px 30px;
@@ -69,7 +83,7 @@
       margin: 12px auto 0;
     }
 
-    /* ———— 诗歌式引导文案 ———— */
+    /* ———— 诗歌式引导文案（防孤字优化） ———— */
     .poem {
       margin: 28px auto;
       font-size: 1.15em;
@@ -78,18 +92,19 @@
       max-width: 480px;
       font-style: italic;
       text-align: center;
+      min-width: 280px; /* 防止极窄屏每行仅1-2字 */
     }
 
     .poem-line {
       display: block;
       margin: 8px 0;
+      word-break: break-word;
     }
 
-    .poem-line:nth-child(1) { margin-top: 16px; }
-    .poem-line:nth-child(2) { margin-top: 4px; }
-    .poem-line:nth-child(3) { margin-top: 20px; color: #c9a968; }
-    .poem-line:nth-child(4) { margin-top: 4px; color: #c9a968; }
-    .poem-line:nth-child(5) { margin-top: 16px; font-style: normal; color: #d0bfcf; }
+    /* 保护关键短语不被拆开 */
+    .nowrap {
+      white-space: nowrap;
+    }
 
     .instructions {
       margin: 24px auto;
@@ -204,6 +219,7 @@
       font-size: 1.08em;
       line-height: 1.85;
       color: #e8d8f0;
+      padding: 0 8px;
     }
 
     .section-content strong {
@@ -298,6 +314,25 @@
       opacity: 0;
       pointer-events: none;
     }
+
+    /* —————— 响应式微调（小屏更舒适） —————— */
+    @media (max-width: 380px) {
+      h1 {
+        font-size: 2.2em;
+      }
+      .poem {
+        font-size: 1.05em;
+        line-height: 1.8;
+      }
+      .section-content,
+      .combined-message {
+        font-size: 1em;
+        line-height: 1.75;
+      }
+      .result-title {
+        font-size: 1.9em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -307,11 +342,11 @@
     <div id="welcome" class="screen active">
       <h1>塔罗日运</h1>
       <div class="poem">
-        <span class="poem-line">星河流转，牌面只为你显影一次</span>
-        <span class="poem-line">心有所问，便轻轻一触</span>
-        <span class="poem-line">塔罗是映照内心的镜，而非预言的工具</span>
-        <span class="poem-line">每日最多抽取三次，让答案在静默中生长</span>
-        <span class="poem-line">别急着追问未来——你此刻的觉察，已是光</span>
+        <span class="poem-line">星河流转，牌面只为你<span class="nowrap">显影一次</span></span>
+        <span class="poem-line">心有所问，便<span class="nowrap">轻轻一触</span></span>
+        <span class="poem-line">塔罗是映照内心的镜，<span class="nowrap">而非预言的工具</span></span>
+        <span class="poem-line">每日最多抽取三次，让答案<span class="nowrap">在静默中生长</span></span>
+        <span class="poem-line">别急着追问未来——<span class="nowrap">你此刻的觉察，已是光</span></span>
       </div>
       <button onclick="startShuffle('first')">开启今日指引</button>
     </div>
@@ -421,7 +456,7 @@
       { name: "命运之轮", symbol: "🌀", fortuneLevel: 2, insight: "转机", text: "变化正在发生，风向已转。<br><br>放手那些不再服务你的，新的已在路上。<br><br>打开窗户，深吸一口气，默念：“我欢迎新的可能。”" },
       { name: "正义", symbol: "⚖️", fortuneLevel: 2, insight: "平衡", text: "今日适合做决定、修复关系，或为自己正名。<br><br>公正，始于对自己的宽恕。<br><br>写下一句想对自己说的公平话，比如：“那时，你已经尽力了。”" },
       { name: "倒吊人", symbol: "🙃", fortuneLevel: 1, insight: "暂停", text: "看似停滞，实则是为看清全局。<br><br>换个角度看问题，答案自然浮现。<br><br>躺下看天花板，让思绪自由飘一会儿。" },
-      { name: "死神", symbol: "💀", fortuneLevel: 1, insight: "新生", text: "结束是为了腾出空间给更好的。<br><br>今日，放下一件旧包袱，哪怕只是心里的一句执念。<br><br>在纸上写下一个想放下的念头，然后撕碎（或安全地烧掉），让风带走它。" },
+      { name: "死神", symbol: "💀", fortuneLevel: 0, insight: "新生", text: "结束是为了腾出空间给更好的。<br><br>今日，放下一件旧包袱，哪怕只是心里的一句执念。<br><br>在纸上写下一个想放下的念头，然后撕碎（或安全地烧掉），让风带走它。" },
       { name: "节制", symbol: "💧", fortuneLevel: 2, insight: "调和", text: "快与慢、动与静，今日需要你找到中间点。<br><br>节奏对了，一切都会流动起来。<br><br>做一件事时，刻意放慢一半速度，感受其中的韵律。" },
       { name: "恶魔", symbol: "👹", fortuneLevel: 0, insight: "释放", text: "你被什么困住了？其实，钥匙一直在你手中。<br><br>承认它，命名它，你就已开始自由。<br><br>轻声说出那个困扰你的词，然后深呼吸三次，想象它随呼气离开。" },
       { name: "高塔", symbol: "⚡", fortuneLevel: 0, insight: "觉醒", text: "突如其来的变化，其实在帮你打破幻象。<br><br>废墟之下，藏着你真正需要的基石。<br><br>找出今日仍安稳存在的三件事（如呼吸、阳光、一杯水），感恩它们。" },

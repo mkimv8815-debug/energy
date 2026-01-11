@@ -34,7 +34,7 @@
       z-index: 2;
     }
 
-    /* —————— 全局中文排版强化 —————— */
+    /* —————— 强化中文排版 —————— */
     .container,
     .poem,
     .instructions,
@@ -48,7 +48,6 @@
       -ms-hyphens: auto;
       orphans: 2;
       widows: 2;
-      /* 现代浏览器：启用更智能的断行 */
       text-wrap: pretty;
     }
 
@@ -216,20 +215,21 @@
       letter-spacing: 1px;
     }
 
-    /* 关键：为结果文案增加内边距，避免贴边导致行宽过小 */
     .section-content,
     .combined-message {
       font-size: 1.08em;
       line-height: 1.85;
       color: #e8d8f0;
-      padding: 0 12px; /* ← 增加左右内边距 */
-      text-align: justify; /* 两端对齐更均匀 */
+      padding: 0 12px;
+      text-align: justify;
       text-justify: inter-word;
     }
 
     .section-content p,
     .combined-message p {
       margin: 0.8em 0;
+      /* 关键：防止标点悬挂 */
+      hanging-punctuation: first last allow-end;
     }
 
     .section-content strong {
@@ -338,7 +338,7 @@
       .combined-message {
         font-size: 1em;
         line-height: 1.75;
-        padding: 0 10px; /* 小屏微调 */
+        padding: 0 10px;
       }
       .result-title {
         font-size: 1.9em;
@@ -406,66 +406,59 @@
   </div>
 
   <script>
-    // —————— 防孤字核心函数 ——————
-    function preventOrphans(htmlStr) {
-      // 先转成纯文本（保留基本结构）
-      const temp = document.createElement('div');
-      temp.innerHTML = htmlStr;
-      let text = temp.innerText || temp.textContent;
+    // —————— 全新：智能中文排版处理器 ——————
+    function formatChineseText(rawText) {
+      // 1. 按双换行符分段落
+      const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
 
-      // 按句号、感叹号、问号分割句子
-      const sentences = text.split(/([。！？…])+/g);
-      let result = [];
+      const processedParagraphs = paragraphs.map(paragraph => {
+        // 移除段落内多余空格和单换行
+        let text = paragraph.replace(/\s+/g, ' ').trim();
 
-      for (let i = 0; i < sentences.length; i++) {
-        let part = sentences[i];
-        if (!part || part.trim() === '') {
-          continue;
-        }
-        // 如果是标点，直接加入
-        if (/^[。！？…]$/.test(part)) {
-          result.push(part);
-          continue;
-        }
+        // 2. 防止行首标点：在中文标点前插入 &ZeroWidthSpace; + &nbsp;（视觉无缝）
+        // 匹配：非行首 + 中文标点
+        text = text.replace(/([^\n\r])([。！？；：，、])/, (match, prev, punct) => {
+          return prev + '\u200B' + '\u00A0' + punct;
+        });
 
-        // 对每个句子处理末尾短词
-        const words = part.split(/\s+/).filter(w => w);
-        if (words.length <= 1) {
-          result.push(part);
-          continue;
-        }
+        // 3. 处理末尾孤字（≤2个汉字）
+        const hanRegex = /[\u4e00-\u9fff]/g;
+        const hanMatches = text.match(hanRegex);
+        if (hanMatches && hanMatches.length >= 2) {
+          const lastTwoHan = hanMatches.slice(-2).join('');
+          const lastOneHan = hanMatches.slice(-1)[0];
 
-        // 检查最后两个“词”是否总长度 ≤ 3
-        const lastWord = words[words.length - 1];
-        const secondLast = words[words.length - 2] || '';
-        if ((lastWord + secondLast).length <= 3) {
-          // 将倒数第二和最后一个用 &nbsp; 连接
-          words[words.length - 2] = secondLast + '\u00A0' + lastWord;
-          words.pop();
-        } else if (lastWord.length <= 2) {
-          // 仅最后一个词 ≤2 字，也连接
-          words[words.length - 2] = secondLast + '\u00A0' + lastWord;
-          words.pop();
-        }
-
-        result.push(words.join(' '));
-      }
-
-      // 重新组合，并包裹 <p>
-      return result
-        .join('')
-        .split(/([。！？…])/)
-        .filter(s => s.trim())
-        .reduce((acc, s, i) => {
-          if (/^[。！？…]$/.test(s)) {
-            acc[acc.length - 1] += s;
-          } else {
-            acc.push(s);
+          // 如果最后1-2个汉字总长度 ≤2，则与前文绑定
+          if (lastTwoHan.length <= 2) {
+            // 找到最后两个汉字的位置
+            const lastIdx = text.lastIndexOf(lastTwoHan);
+            if (lastIdx > 0) {
+              const before = text.substring(0, lastIdx);
+              const after = text.substring(lastIdx);
+              // 在倒数第二个汉字前插入 &nbsp;
+              const parts = after.split('');
+              if (parts.length >= 2) {
+                parts[parts.length - 2] = '\u00A0' + parts[parts.length - 2];
+                text = before + parts.join('');
+              }
+            }
+          } else if (lastOneHan.length === 1) {
+            // 极端情况：最后一个字单独
+            const lastIdx = text.lastIndexOf(lastOneHan);
+            if (lastIdx > 0) {
+              const before = text.substring(0, lastIdx);
+              const charBeforeLast = text.charAt(lastIdx - 1);
+              if (charBeforeLast) {
+                text = before + '\u00A0' + lastOneHan;
+              }
+            }
           }
-          return acc;
-        }, [])
-        .map(p => `<p>${p.trim()}</p>`)
-        .join('');
+        }
+
+        return `<p>${text}</p>`;
+      });
+
+      return processedParagraphs.join('');
     }
 
     // —————— 页面切换工具函数 ——————
@@ -515,7 +508,7 @@
       }
     }
 
-    // 卡牌数据：移除 <br>，改用自然段落
+    // 卡牌数据（保持不变，但注意：不再依赖 <br>）
     const tarotCards = [
       { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。\n\n宇宙正为你铺一条看不见的路，只需相信脚下的土地。\n\n此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
       { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。\n\n今日，你的意图会快速成形，请清晰地说出你想要什么。\n\n整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
@@ -616,11 +609,11 @@
       const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel);
       const combinedGuidance = generateCombinedMessage(firstCard, secondCard);
 
-      // ✅ 关键：使用 preventOrphans 处理文本
+      // ✅ 使用全新排版处理器
       document.getElementById('overallFortune').textContent = overall;
-      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + preventOrphans(firstCard.text);
-      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + preventOrphans(secondCard.text);
-      document.getElementById('combinedMessage').innerHTML = preventOrphans(combinedGuidance);
+      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + formatChineseText(firstCard.text);
+      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + formatChineseText(secondCard.text);
+      document.getElementById('combinedMessage').innerHTML = formatChineseText(combinedGuidance);
 
       showScreen('combinedResult');
     }

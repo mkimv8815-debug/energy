@@ -34,7 +34,7 @@
       z-index: 2;
     }
 
-    /* —————— 全局中文排版优化 —————— */
+    /* —————— 全局中文排版强化 —————— */
     .container,
     .poem,
     .instructions,
@@ -46,6 +46,10 @@
       hyphens: auto;
       -webkit-hyphens: auto;
       -ms-hyphens: auto;
+      orphans: 2;
+      widows: 2;
+      /* 现代浏览器：启用更智能的断行 */
+      text-wrap: pretty;
     }
 
     .screen {
@@ -83,7 +87,6 @@
       margin: 12px auto 0;
     }
 
-    /* ———— 诗歌式引导文案（防孤字优化） ———— */
     .poem {
       margin: 28px auto;
       font-size: 1.15em;
@@ -92,7 +95,7 @@
       max-width: 480px;
       font-style: italic;
       text-align: center;
-      min-width: 280px; /* 防止极窄屏每行仅1-2字 */
+      min-width: 280px;
     }
 
     .poem-line {
@@ -101,7 +104,6 @@
       word-break: break-word;
     }
 
-    /* 保护关键短语不被拆开 */
     .nowrap {
       white-space: nowrap;
     }
@@ -115,7 +117,6 @@
       line-height: 1.6;
     }
 
-    /* —————— 抽牌页：卡片容器与牌背样式 —————— */
     .cards-container {
       display: flex;
       justify-content: center;
@@ -160,7 +161,7 @@
       }
     }
 
-    /* —————— 结果页 —————— */
+    /* —————— 结果页：关键防孤字区域 —————— */
     .result-header {
       position: relative;
       margin-bottom: 30px;
@@ -215,11 +216,20 @@
       letter-spacing: 1px;
     }
 
-    .section-content {
+    /* 关键：为结果文案增加内边距，避免贴边导致行宽过小 */
+    .section-content,
+    .combined-message {
       font-size: 1.08em;
       line-height: 1.85;
       color: #e8d8f0;
-      padding: 0 8px;
+      padding: 0 12px; /* ← 增加左右内边距 */
+      text-align: justify; /* 两端对齐更均匀 */
+      text-justify: inter-word;
+    }
+
+    .section-content p,
+    .combined-message p {
+      margin: 0.8em 0;
     }
 
     .section-content strong {
@@ -230,11 +240,12 @@
     .combined-message {
       background: rgba(20, 10, 30, 0.85);
       border-left: 4px solid #c9a968;
-      padding: 20px;
+      padding: 20px !important;
       margin: 28px 0;
       font-style: italic;
       color: #f0e0d0;
       border-radius: 0 10px 10px 0;
+      text-align: justify;
     }
 
     .share-prompt {
@@ -315,7 +326,6 @@
       pointer-events: none;
     }
 
-    /* —————— 响应式微调（小屏更舒适） —————— */
     @media (max-width: 380px) {
       h1 {
         font-size: 2.2em;
@@ -328,6 +338,7 @@
       .combined-message {
         font-size: 1em;
         line-height: 1.75;
+        padding: 0 10px; /* 小屏微调 */
       }
       .result-title {
         font-size: 1.9em;
@@ -395,13 +406,75 @@
   </div>
 
   <script>
+    // —————— 防孤字核心函数 ——————
+    function preventOrphans(htmlStr) {
+      // 先转成纯文本（保留基本结构）
+      const temp = document.createElement('div');
+      temp.innerHTML = htmlStr;
+      let text = temp.innerText || temp.textContent;
+
+      // 按句号、感叹号、问号分割句子
+      const sentences = text.split(/([。！？…])+/g);
+      let result = [];
+
+      for (let i = 0; i < sentences.length; i++) {
+        let part = sentences[i];
+        if (!part || part.trim() === '') {
+          continue;
+        }
+        // 如果是标点，直接加入
+        if (/^[。！？…]$/.test(part)) {
+          result.push(part);
+          continue;
+        }
+
+        // 对每个句子处理末尾短词
+        const words = part.split(/\s+/).filter(w => w);
+        if (words.length <= 1) {
+          result.push(part);
+          continue;
+        }
+
+        // 检查最后两个“词”是否总长度 ≤ 3
+        const lastWord = words[words.length - 1];
+        const secondLast = words[words.length - 2] || '';
+        if ((lastWord + secondLast).length <= 3) {
+          // 将倒数第二和最后一个用 &nbsp; 连接
+          words[words.length - 2] = secondLast + '\u00A0' + lastWord;
+          words.pop();
+        } else if (lastWord.length <= 2) {
+          // 仅最后一个词 ≤2 字，也连接
+          words[words.length - 2] = secondLast + '\u00A0' + lastWord;
+          words.pop();
+        }
+
+        result.push(words.join(' '));
+      }
+
+      // 重新组合，并包裹 <p>
+      return result
+        .join('')
+        .split(/([。！？…])/)
+        .filter(s => s.trim())
+        .reduce((acc, s, i) => {
+          if (/^[。！？…]$/.test(s)) {
+            acc[acc.length - 1] += s;
+          } else {
+            acc.push(s);
+          }
+          return acc;
+        }, [])
+        .map(p => `<p>${p.trim()}</p>`)
+        .join('');
+    }
+
     // —————— 页面切换工具函数 ——————
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
       document.getElementById(screenId).classList.add('active');
     }
 
-    // 粒子动效
+    // 粒子动效（不变）
     const particlesContainer = document.getElementById('particles');
     function createParticles(x, y) {
       const colors = ['#c9a968', '#d4b77a', '#a68560'];
@@ -442,29 +515,30 @@
       }
     }
 
+    // 卡牌数据：移除 <br>，改用自然段落
     const tarotCards = [
-      { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。<br><br>宇宙正为你铺一条看不见的路，只需相信脚下的土地。<br><br>此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
-      { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。<br><br>今日，你的意图会快速成形，请清晰地说出你想要什么。<br><br>整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
-      { name: "女祭司", symbol: "🌙", fortuneLevel: 2, insight: "直觉", text: "内心有个轻柔的声音，请多听它一会儿。<br><br>答案不在远方，而在你呼吸的间隙里。<br><br>闭眼三次深呼吸，问自己：“此刻，我真正需要什么？”" },
-      { name: "皇后", symbol: "🌸", fortuneLevel: 3, insight: "滋养", text: "今日，请像对待挚友一样对待自己。<br><br>你的存在本身，就是一种丰盛。允许自己被温柔包围。<br><br>泡一杯热饮，双手捧住，感受暖意从掌心流向全身。" },
-      { name: "皇帝", symbol: "👑", fortuneLevel: 2, insight: "稳定", text: "结构不是束缚，而是让你安心飞翔的支架。<br><br>今日适合规划、设立边界，或完成一件拖延的小事。<br><br>写下今日三件必做小事，完成后轻轻划掉，给自己一个无声的掌声。" },
-      { name: "教皇", symbol: "⛪", fortuneLevel: 2, insight: "智慧", text: "有人正默默支持你，或一段旧知识将突然照亮你。<br><br>向内求，也向外学，两者皆是光。<br><br>重读一段曾激励你的文字，让它再次流入心里。" },
-      { name: "恋人", symbol: "❤️", fortuneLevel: 3, insight: "选择", text: "无论面对人、事或方向，忠于内心就是最好的答案。<br><br>爱，始于对自己诚实。<br><br>把手放在心口，轻声说：“我选择你，我的真实。”" },
-      { name: "战车", symbol: "⚔️", fortuneLevel: 2, insight: "前行", text: "内在有些拉扯，但你有能力驾驭它们。<br><br>不必完美平衡，只要方向坚定，就能前进。<br><br>选一件想推进的事，现在就做第一步——哪怕只花两分钟。" },
-      { name: "力量", symbol: "🦁", fortuneLevel: 3, insight: "温柔之力", text: "真正的勇气，是带着脆弱依然前行。<br><br>你比想象中更坚韧，也更柔软。<br><br>对今天的自己说：“辛苦了，但我为你骄傲。”" },
-      { name: "隐士", symbol: "🕯️", fortuneLevel: 1, insight: "内观", text: "今日适合慢下来，点一盏内在的灯。<br><br>独处不是孤独，而是与自己重逢。<br><br>关掉屏幕五分钟，静静坐着，只陪自己。" },
-      { name: "命运之轮", symbol: "🌀", fortuneLevel: 2, insight: "转机", text: "变化正在发生，风向已转。<br><br>放手那些不再服务你的，新的已在路上。<br><br>打开窗户，深吸一口气，默念：“我欢迎新的可能。”" },
-      { name: "正义", symbol: "⚖️", fortuneLevel: 2, insight: "平衡", text: "今日适合做决定、修复关系，或为自己正名。<br><br>公正，始于对自己的宽恕。<br><br>写下一句想对自己说的公平话，比如：“那时，你已经尽力了。”" },
-      { name: "倒吊人", symbol: "🙃", fortuneLevel: 1, insight: "暂停", text: "看似停滞，实则是为看清全局。<br><br>换个角度看问题，答案自然浮现。<br><br>躺下看天花板，让思绪自由飘一会儿。" },
-      { name: "死神", symbol: "💀", fortuneLevel: 0, insight: "新生", text: "结束是为了腾出空间给更好的。<br><br>今日，放下一件旧包袱，哪怕只是心里的一句执念。<br><br>在纸上写下一个想放下的念头，然后撕碎（或安全地烧掉），让风带走它。" },
-      { name: "节制", symbol: "💧", fortuneLevel: 2, insight: "调和", text: "快与慢、动与静，今日需要你找到中间点。<br><br>节奏对了，一切都会流动起来。<br><br>做一件事时，刻意放慢一半速度，感受其中的韵律。" },
-      { name: "恶魔", symbol: "👹", fortuneLevel: 0, insight: "释放", text: "你被什么困住了？其实，钥匙一直在你手中。<br><br>承认它，命名它，你就已开始自由。<br><br>轻声说出那个困扰你的词，然后深呼吸三次，想象它随呼气离开。" },
-      { name: "高塔", symbol: "⚡", fortuneLevel: 0, insight: "觉醒", text: "突如其来的变化，其实在帮你打破幻象。<br><br>废墟之下，藏着你真正需要的基石。<br><br>找出今日仍安稳存在的三件事（如呼吸、阳光、一杯水），感恩它们。" },
-      { name: "星星", symbol: "🌟", fortuneLevel: 3, insight: "希望", text: "黑暗中有光，而你就是其中之一。<br><br>今日，请相信：美好正在靠近，包括你内心的平静。<br><br>抬头看天空（白天或夜晚），默念：“我属于这浩瀚，也被它守护。”" },
-      { name: "月亮", symbol: "🌙", fortuneLevel: 1, insight: "信任", text: "有些事情还不清晰，没关系。<br><br>跟随直觉走一小步，雾就会散开一点。<br><br>把手放在腹部，问：“下一步，往哪？” 然后跟随第一个冲动。" },
-      { name: "太阳", symbol: "☀️", fortuneLevel: 3, insight: "喜悦", text: "今日充满光明与活力！允许自己开心，无需理由。<br><br>你的笑容，本身就是一种疗愈。<br><br>对着镜子微笑5秒，哪怕假装——身体会记住这份光。" },
-      { name: "审判", symbol: "🔔", fortuneLevel: 2, insight: "重生", text: "一个新篇章正在开启。你准备好了。<br><br>过去的经验，将成为你新生的翅膀。<br><br>写下“我已准备好迎接______”，填上你期待的新开始。" },
-      { name: "世界", symbol: "🌍", fortuneLevel: 3, insight: "圆满", text: "今日，你站在一个阶段的终点，也是新循环的起点。<br><br>你做得很好，真的很好。<br><br>双手合十于胸前，轻声说：“谢谢这一程的自己。”" }
+      { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。\n\n宇宙正为你铺一条看不见的路，只需相信脚下的土地。\n\n此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
+      { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。\n\n今日，你的意图会快速成形，请清晰地说出你想要什么。\n\n整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
+      { name: "女祭司", symbol: "🌙", fortuneLevel: 2, insight: "直觉", text: "内心有个轻柔的声音，请多听它一会儿。\n\n答案不在远方，而在你呼吸的间隙里。\n\n闭眼三次深呼吸，问自己：“此刻，我真正需要什么？”" },
+      { name: "皇后", symbol: "🌸", fortuneLevel: 3, insight: "滋养", text: "今日，请像对待挚友一样对待自己。\n\n你的存在本身，就是一种丰盛。允许自己被温柔包围。\n\n泡一杯热饮，双手捧住，感受暖意从掌心流向全身。" },
+      { name: "皇帝", symbol: "👑", fortuneLevel: 2, insight: "稳定", text: "结构不是束缚，而是让你安心飞翔的支架。\n\n今日适合规划、设立边界，或完成一件拖延的小事。\n\n写下今日三件必做小事，完成后轻轻划掉，给自己一个无声的掌声。" },
+      { name: "教皇", symbol: "⛪", fortuneLevel: 2, insight: "智慧", text: "有人正默默支持你，或一段旧知识将突然照亮你。\n\n向内求，也向外学，两者皆是光。\n\n重读一段曾激励你的文字，让它再次流入心里。" },
+      { name: "恋人", symbol: "❤️", fortuneLevel: 3, insight: "选择", text: "无论面对人、事或方向，忠于内心就是最好的答案。\n\n爱，始于对自己诚实。\n\n把手放在心口，轻声说：“我选择你，我的真实。”" },
+      { name: "战车", symbol: "⚔️", fortuneLevel: 2, insight: "前行", text: "内在有些拉扯，但你有能力驾驭它们。\n\n不必完美平衡，只要方向坚定，就能前进。\n\n选一件想推进的事，现在就做第一步——哪怕只花两分钟。" },
+      { name: "力量", symbol: "🦁", fortuneLevel: 3, insight: "温柔之力", text: "真正的勇气，是带着脆弱依然前行。\n\n你比想象中更坚韧，也更柔软。\n\n对今天的自己说：“辛苦了，但我为你骄傲。”" },
+      { name: "隐士", symbol: "🕯️", fortuneLevel: 1, insight: "内观", text: "今日适合慢下来，点一盏内在的灯。\n\n独处不是孤独，而是与自己重逢。\n\n关掉屏幕五分钟，静静坐着，只陪自己。" },
+      { name: "命运之轮", symbol: "🌀", fortuneLevel: 2, insight: "转机", text: "变化正在发生，风向已转。\n\n放手那些不再服务你的，新的已在路上。\n\n打开窗户，深吸一口气，默念：“我欢迎新的可能。”" },
+      { name: "正义", symbol: "⚖️", fortuneLevel: 2, insight: "平衡", text: "今日适合做决定、修复关系，或为自己正名。\n\n公正，始于对自己的宽恕。\n\n写下一句想对自己说的公平话，比如：“那时，你已经尽力了。”" },
+      { name: "倒吊人", symbol: "🙃", fortuneLevel: 1, insight: "暂停", text: "看似停滞，实则是为看清全局。\n\n换个角度看问题，答案自然浮现。\n\n躺下看天花板，让思绪自由飘一会儿。" },
+      { name: "死神", symbol: "💀", fortuneLevel: 0, insight: "新生", text: "结束是为了腾出空间给更好的。\n\n今日，放下一件旧包袱，哪怕只是心里的一句执念。\n\n在纸上写下一个想放下的念头，然后撕碎（或安全地烧掉），让风带走它。" },
+      { name: "节制", symbol: "💧", fortuneLevel: 2, insight: "调和", text: "快与慢、动与静，今日需要你找到中间点。\n\n节奏对了，一切都会流动起来。\n\n做一件事时，刻意放慢一半速度，感受其中的韵律。" },
+      { name: "恶魔", symbol: "👹", fortuneLevel: 0, insight: "释放", text: "你被什么困住了？其实，钥匙一直在你手中。\n\n承认它，命名它，你就已开始自由。\n\n轻声说出那个困扰你的词，然后深呼吸三次，想象它随呼气离开。" },
+      { name: "高塔", symbol: "⚡", fortuneLevel: 0, insight: "觉醒", text: "突如其来的变化，其实在帮你打破幻象。\n\n废墟之下，藏着你真正需要的基石。\n\n找出今日仍安稳存在的三件事（如呼吸、阳光、一杯水），感恩它们。" },
+      { name: "星星", symbol: "🌟", fortuneLevel: 3, insight: "希望", text: "黑暗中有光，而你就是其中之一。\n\n今日，请相信：美好正在靠近，包括你内心的平静。\n\n抬头看天空（白天或夜晚），默念：“我属于这浩瀚，也被它守护。”" },
+      { name: "月亮", symbol: "🌙", fortuneLevel: 1, insight: "信任", text: "有些事情还不清晰，没关系。\n\n跟随直觉走一小步，雾就会散开一点。\n\n把手放在腹部，问：“下一步，往哪？” 然后跟随第一个冲动。" },
+      { name: "太阳", symbol: "☀️", fortuneLevel: 3, insight: "喜悦", text: "今日充满光明与活力！允许自己开心，无需理由。\n\n你的笑容，本身就是一种疗愈。\n\n对着镜子微笑5秒，哪怕假装——身体会记住这份光。" },
+      { name: "审判", symbol: "🔔", fortuneLevel: 2, insight: "重生", text: "一个新篇章正在开启。你准备好了。\n\n过去的经验，将成为你新生的翅膀。\n\n写下“我已准备好迎接______”，填上你期待的新开始。" },
+      { name: "世界", symbol: "🌍", fortuneLevel: 3, insight: "圆满", text: "今日，你站在一个阶段的终点，也是新循环的起点。\n\n你做得很好，真的很好。\n\n双手合十于胸前，轻声说：“谢谢这一程的自己。”" }
     ];
 
     const fortunePhrases = {
@@ -529,11 +603,11 @@
 
     function generateCombinedMessage(card1, card2) {
       const messages = [
-        `当「${card1.insight}」遇见「${card2.insight}」，能量交织成光：<br>外在行动与内在节奏，正达成神圣和谐。`,
-        `「${card1.insight}」点燃火种，「${card2.insight}」护持微光。<br>今日，你既是旅人，也是归处。`,
-        `塔罗借这两张牌低语：<br>你已被看见，被支持，被深深祝福着。`,
-        `刚柔并济，动静相生——<br>这正是你今日最强大的状态。`,
-        `不必追问意义，<br>你此刻的存在，已是答案。`
+        `当「${card1.insight}」遇见「${card2.insight}」，能量交织成光：外在行动与内在节奏，正达成神圣和谐。`,
+        `「${card1.insight}」点燃火种，「${card2.insight}」护持微光。今日，你既是旅人，也是归处。`,
+        `塔罗借这两张牌低语：你已被看见，被支持，被深深祝福着。`,
+        `刚柔并济，动静相生——这正是你今日最强大的状态。`,
+        `不必追问意义，你此刻的存在，已是答案。`
       ];
       return messages[Math.floor(Math.random() * messages.length)];
     }
@@ -542,10 +616,11 @@
       const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel);
       const combinedGuidance = generateCombinedMessage(firstCard, secondCard);
 
+      // ✅ 关键：使用 preventOrphans 处理文本
       document.getElementById('overallFortune').textContent = overall;
-      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong><br>${firstCard.text}`;
-      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong><br>${secondCard.text}`;
-      document.getElementById('combinedMessage').innerHTML = combinedGuidance;
+      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + preventOrphans(firstCard.text);
+      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + preventOrphans(secondCard.text);
+      document.getElementById('combinedMessage').innerHTML = preventOrphans(combinedGuidance);
 
       showScreen('combinedResult');
     }

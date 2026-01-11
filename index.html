@@ -116,6 +116,7 @@
       font-style: italic;
       max-width: 460px;
       line-height: 1.6;
+      text-align: center; /* 居中 */
     }
 
     .cards-container {
@@ -266,22 +267,18 @@
 
     .share-prompt {
       margin-top: 35px;
-      font-size: 1.15em;
+      font-size: 1.1em;
       color: #d4b77a;
       font-style: italic;
-      line-height: 1.6;
-      padding: 16px;
+      line-height: 1.5;
+      padding: 12px;
       background: rgba(15, 8, 25, 0.6);
-      border-radius: 12px;
+      border-radius: 10px;
       border: 1px dashed #5a4070;
-      text-align: left;
-    }
-
-    .share-prompt::before,
-    .share-prompt::after {
-      content: "✦";
-      margin: 0 8px;
-      color: #c9a968;
+      text-align: center; /* 居中 */
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     button {
@@ -311,18 +308,22 @@
 
     .restart-link {
       display: block;
-      margin: 30px auto 0;
+      margin: 24px auto 0;
       color: #c9a968;
       text-decoration: none;
-      font-size: 1.1em;
+      font-size: 1.05em;
       font-style: italic;
       letter-spacing: 1px;
       width: fit-content;
+      text-align: center;
     }
 
-    .restart-link:hover {
-      text-decoration: underline;
-      color: #d4b77a;
+    .restart-link::after {
+      content: "（每日仅限一次）";
+      display: block;
+      font-size: 0.9em;
+      color: #5a4070;
+      margin-top: 4px;
     }
 
     #particles {
@@ -387,19 +388,19 @@
 
     <div id="firstDraw" class="screen">
       <h1>第一重&nbsp;·&nbsp;行动之牌</h1>
-      <div class="instructions">哪一张在提醒你今日该迈出的一步？</div>
+      <div class="instructions">哪一张在指引你今日行动？</div>
       <div class="cards-container" id="firstCards"></div>
     </div>
 
     <div id="secondDraw" class="screen">
       <h1>第二重&nbsp;·&nbsp;心灵之牌</h1>
-      <div class="instructions">哪一张在轻抚你今日的情绪暗流？</div>
+      <div class="instructions">哪一张映照你此刻内心？</div>
       <div class="cards-container" id="secondCards"></div>
     </div>
 
     <div id="thirdDraw" class="screen third-draw">
       <h1>第三重&nbsp;·&nbsp;祝福之牌</h1>
-      <div class="instructions">哪一张正为你洒下星光？</div>
+      <div class="instructions">哪一张正为你悄然祝福？</div>
       <div class="cards-container" id="thirdCards"></div>
     </div>
 
@@ -429,10 +430,10 @@
       <div class="combined-message" id="combinedMessage"></div>
 
       <div class="share-prompt">
-        若这段话轻轻碰到了你的心，愿它像一颗星子落入另一片夜空——有人正等着被这样的光温柔接住。
+        若触动你，愿它也照亮他人。
       </div>
 
-      <a href="#" class="restart-link" onclick="restart()">重新开始</a>
+      <a href="#" class="restart-link" onclick="restart()">明日再抽日运</a>
     </div>
   </div>
 
@@ -638,9 +639,8 @@
     }
 
     function restart() {
-      selections = {};
-      hideAllScreens();
-      document.getElementById('welcome').classList.add('active');
+      // 不重置，仅提示明日再来
+      alert('今日已抽取，明日再抽日运。\n塔罗日运每日限一次，静待时光流转。');
     }
 
     function createParticles() {

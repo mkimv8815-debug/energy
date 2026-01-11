@@ -228,7 +228,6 @@
     .section-content p,
     .combined-message p {
       margin: 0.8em 0;
-      /* 关键：防止标点悬挂 */
       hanging-punctuation: first last allow-end;
     }
 
@@ -406,50 +405,38 @@
   </div>
 
   <script>
-    // —————— 全新：智能中文排版处理器 ——————
-    function formatChineseText(rawText) {
-      // 1. 按双换行符分段落
+    // —————— 全新：超强中文排版处理器 ——————
+    function smartFormatChinese(rawText) {
+      // 1. 按双换行分段，过滤空段
       const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
 
       const processedParagraphs = paragraphs.map(paragraph => {
-        // 移除段落内多余空格和单换行
         let text = paragraph.replace(/\s+/g, ' ').trim();
 
-        // 2. 防止行首标点：在中文标点前插入 &ZeroWidthSpace; + &nbsp;（视觉无缝）
-        // 匹配：非行首 + 中文标点
-        text = text.replace(/([^\n\r])([。！？；：，、])/, (match, prev, punct) => {
-          return prev + '\u200B' + '\u00A0' + punct;
+        // 2. 所有中英文句末标点：与前一字符绑定（防止行首标点 + 孤标点）
+        // 匹配：任意字符 + [。！？.!?]
+        text = text.replace(/([^\s])([。！？.!?])/g, (match, prev, punct) => {
+          // 使用 Word Joiner (\u2060) + No-Break Space (\u00A0)
+          return prev + '\u2060\u00A0' + punct;
         });
 
-        // 3. 处理末尾孤字（≤2个汉字）
-        const hanRegex = /[\u4e00-\u9fff]/g;
-        const hanMatches = text.match(hanRegex);
-        if (hanMatches && hanMatches.length >= 2) {
-          const lastTwoHan = hanMatches.slice(-2).join('');
-          const lastOneHan = hanMatches.slice(-1)[0];
-
-          // 如果最后1-2个汉字总长度 ≤2，则与前文绑定
-          if (lastTwoHan.length <= 2) {
-            // 找到最后两个汉字的位置
-            const lastIdx = text.lastIndexOf(lastTwoHan);
-            if (lastIdx > 0) {
-              const before = text.substring(0, lastIdx);
-              const after = text.substring(lastIdx);
-              // 在倒数第二个汉字前插入 &nbsp;
-              const parts = after.split('');
-              if (parts.length >= 2) {
-                parts[parts.length - 2] = '\u00A0' + parts[parts.length - 2];
-                text = before + parts.join('');
-              }
-            }
-          } else if (lastOneHan.length === 1) {
-            // 极端情况：最后一个字单独
-            const lastIdx = text.lastIndexOf(lastOneHan);
-            if (lastIdx > 0) {
-              const before = text.substring(0, lastIdx);
-              const charBeforeLast = text.charAt(lastIdx - 1);
-              if (charBeforeLast) {
-                text = before + '\u00A0' + lastOneHan;
+        // 3. 防止末尾 ≤3 字符的“孤岛”（如“光。”、“你好！”）
+        // 提取所有汉字+标点序列
+        const tailMatch = text.match(/([\u4e00-\u9fff\w][。！？.!?]?)$/);
+        if (tailMatch) {
+          const tail = tailMatch[0];
+          if (tail.length <= 3) {
+            const idx = text.lastIndexOf(tail);
+            if (idx > 0) {
+              const before = text.substring(0, idx);
+              const after = text.substring(idx);
+              // 在倒数第二个字符前插入 &nbsp;
+              const chars = [...after];
+              if (chars.length >= 2) {
+                chars[chars.length - 2] = '\u00A0' + chars[chars.length - 2];
+                text = before + chars.join('');
+              } else if (chars.length === 1) {
+                text = before + '\u00A0' + chars[0];
               }
             }
           }
@@ -508,7 +495,7 @@
       }
     }
 
-    // 卡牌数据（保持不变，但注意：不再依赖 <br>）
+    // 卡牌数据（保持不变）
     const tarotCards = [
       { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。\n\n宇宙正为你铺一条看不见的路，只需相信脚下的土地。\n\n此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
       { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。\n\n今日，你的意图会快速成形，请清晰地说出你想要什么。\n\n整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
@@ -609,11 +596,11 @@
       const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel);
       const combinedGuidance = generateCombinedMessage(firstCard, secondCard);
 
-      // ✅ 使用全新排版处理器
+      // ✅ 使用全新智能排版
       document.getElementById('overallFortune').textContent = overall;
-      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + formatChineseText(firstCard.text);
-      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + formatChineseText(secondCard.text);
-      document.getElementById('combinedMessage').innerHTML = formatChineseText(combinedGuidance);
+      document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + smartFormatChinese(firstCard.text);
+      document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + smartFormatChinese(secondCard.text);
+      document.getElementById('combinedMessage').innerHTML = smartFormatChinese(combinedGuidance);
 
       showScreen('combinedResult');
     }

@@ -34,7 +34,7 @@
       z-index: 2;
     }
 
-    /* —————— 强化中文排版 —————— */
+    /* —————— 关键：禁用两端对齐，恢复自然排版 —————— */
     .container,
     .poem,
     .instructions,
@@ -43,12 +43,12 @@
     .share-prompt {
       word-break: keep-all;
       overflow-wrap: break-word;
-      hyphens: auto;
-      -webkit-hyphens: auto;
-      -ms-hyphens: auto;
+      hyphens: none; /* 中文无需连字符 */
       orphans: 2;
       widows: 2;
-      text-wrap: pretty;
+      text-align: left; /* ← 核心修改：取消 justify */
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .screen {
@@ -160,7 +160,7 @@
       }
     }
 
-    /* —————— 结果页：关键防孤字区域 —————— */
+    /* —————— 结果页：安全排版区域 —————— */
     .result-header {
       position: relative;
       margin-bottom: 30px;
@@ -221,14 +221,13 @@
       line-height: 1.85;
       color: #e8d8f0;
       padding: 0 12px;
-      text-align: justify;
-      text-justify: inter-word;
+      /* ← 已移除 text-align: justify */
     }
 
     .section-content p,
     .combined-message p {
       margin: 0.8em 0;
-      hanging-punctuation: first last allow-end;
+      /* 禁用 hanging-punctuation（部分浏览器支持差） */
     }
 
     .section-content strong {
@@ -244,7 +243,7 @@
       font-style: italic;
       color: #f0e0d0;
       border-radius: 0 10px 10px 0;
-      text-align: justify;
+      text-align: left;
     }
 
     .share-prompt {
@@ -257,6 +256,7 @@
       background: rgba(15, 8, 25, 0.6);
       border-radius: 12px;
       border: 1px dashed #5a4070;
+      text-align: center;
     }
 
     .share-prompt::before,
@@ -405,42 +405,37 @@
   </div>
 
   <script>
-    // —————— 全新：超强中文排版处理器 ——————
+    // —————— 全新：简洁可靠的中文防孤字处理器 ——————
     function smartFormatChinese(rawText) {
-      // 1. 按双换行分段，过滤空段
+      // 按双换行分段
       const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
 
       const processedParagraphs = paragraphs.map(paragraph => {
         let text = paragraph.replace(/\s+/g, ' ').trim();
 
-        // 2. 所有中英文句末标点：与前一字符绑定（防止行首标点 + 孤标点）
-        // 匹配：任意字符 + [。！？.!?]
-        text = text.replace(/([^\s])([。！？.!?])/g, (match, prev, punct) => {
-          // 使用 Word Joiner (\u2060) + No-Break Space (\u00A0)
-          return prev + '\u2060\u00A0' + punct;
-        });
+        // 1. 所有中文句末标点（。！？）与前一个非空白字符绑定，防止行首标点
+        // 使用 &nbsp; 而非 \u2060，兼容性更好
+        text = text.replace(/([^\s])([。！？])/g, '$1&nbsp;$2');
 
-        // 3. 防止末尾 ≤3 字符的“孤岛”（如“光。”、“你好！”）
-        // 提取所有汉字+标点序列
-        const tailMatch = text.match(/([\u4e00-\u9fff\w][。！？.!?]?)$/);
+        // 2. 防止末尾出现 ≤3 字符的“孤岛”（如“光。”、“你好！”）
+        // 匹配结尾的：汉字 + [。！？] 或 汉字汉字 + [。！？]
+        const tailMatch = text.match(/([\u4e00-\u9fff]{1,2}[。！？])$/);
         if (tailMatch) {
           const tail = tailMatch[0];
-          if (tail.length <= 3) {
-            const idx = text.lastIndexOf(tail);
-            if (idx > 0) {
-              const before = text.substring(0, idx);
-              const after = text.substring(idx);
-              // 在倒数第二个字符前插入 &nbsp;
-              const chars = [...after];
-              if (chars.length >= 2) {
-                chars[chars.length - 2] = '\u00A0' + chars[chars.length - 2];
-                text = before + chars.join('');
-              } else if (chars.length === 1) {
-                text = before + '\u00A0' + chars[0];
-              }
+          const idx = text.lastIndexOf(tail);
+          if (idx > 0) {
+            const before = text.substring(0, idx);
+            // 在倒数第二个字符前插入 &nbsp;
+            const chars = [...tail];
+            if (chars.length >= 2) {
+              chars[0] = '&nbsp;' + chars[0]; // 把整个短尾绑定
+              text = before + chars.join('');
             }
           }
         }
+
+        // 3. 移除可能残留的行首标点（极端情况兜底）
+        text = text.replace(/^([。！？])/g, '&nbsp;$1');
 
         return `<p>${text}</p>`;
       });
@@ -448,7 +443,7 @@
       return processedParagraphs.join('');
     }
 
-    // —————— 页面切换工具函数 ——————
+    // 页面切换
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
       document.getElementById(screenId).classList.add('active');
@@ -495,7 +490,7 @@
       }
     }
 
-    // 卡牌数据（保持不变）
+    // 卡牌数据（不变）
     const tarotCards = [
       { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。\n\n宇宙正为你铺一条看不见的路，只需相信脚下的土地。\n\n此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
       { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。\n\n今日，你的意图会快速成形，请清晰地说出你想要什么。\n\n整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
@@ -596,7 +591,7 @@
       const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel);
       const combinedGuidance = generateCombinedMessage(firstCard, secondCard);
 
-      // ✅ 使用全新智能排版
+      // 使用优化后的排版函数
       document.getElementById('overallFortune').textContent = overall;
       document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + smartFormatChinese(firstCard.text);
       document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + smartFormatChinese(secondCard.text);

@@ -227,15 +227,17 @@
       background: rgba(30, 18, 45, 0.7);
       border: 1px solid #5a4070;
       border-radius: 16px;
-      padding: 24px;
-      margin: 22px 0;
+      /* ✅ 增强呼吸感：增大内边距和外边距 */
+      padding: 32px 28px;
+      margin: 36px 0;
       text-align: left;
+      transition: background 0.4s ease;
     }
 
     .section-label {
       font-size: 1.1em;
       color: #c9a968;
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       font-weight: 600;
       letter-spacing: 1px;
       text-align: left;
@@ -251,7 +253,7 @@
 
     .section-content p,
     .combined-message p {
-      margin: 0.8em 0;
+      margin: 1em 0;
       text-align: left;
     }
 
@@ -260,22 +262,35 @@
       font-weight: 600;
     }
 
+    /* ✅ 强化卡名视觉层次 */
     .card-name {
       display: block;
-      font-weight: 600;
+      font-weight: 700;
       color: #d4b77a;
-      margin-bottom: 8px;
-      font-size: 1.2em;
+      margin-bottom: 14px;
+      font-size: 1.3em;
+      letter-spacing: 0.5px;
+      position: relative;
+    }
+
+    .card-name::after {
+      content: "";
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(to right, #c9a968, transparent);
+      margin-top: 6px;
     }
 
     .combined-message {
       background: rgba(20, 10, 30, 0.85);
       border-left: 4px solid #c9a968;
-      padding: 20px !important;
-      margin: 28px 0;
+      padding: 24px !important;
+      margin: 40px 0;
       font-style: italic;
       color: #f0e0d0;
       border-radius: 0 10px 10px 0;
+      line-height: 1.8;
     }
 
     .share-prompt {
@@ -379,6 +394,13 @@
       .section-label {
         white-space: normal;
         word-break: keep-all;
+      }
+      .result-section {
+        padding: 26px 20px;
+        margin: 30px 0;
+      }
+      .card-name {
+        font-size: 1.2em;
       }
     }
   </style>
@@ -634,19 +656,19 @@
       const emotion = selections.second;
       const blessing = selections.third;
 
-      // ✅ 更新运势判断逻辑：四档，图标严格按规则
+      // ✅ 更新运势判断逻辑：使用诗意短语
       const positiveCards = ['魔术师','皇后','恋人','战车','力量','命运之轮','节制','星星','太阳','世界'];
       const count = [action, emotion, blessing].filter(c => positiveCards.includes(c.name)).length;
 
       let fortuneText;
       if (count === 3) {
-        fortuneText = '运势极佳 🌞'; // 三张全正面 → 🌞
+        fortuneText = '内在太阳升起 🌞'; // 极佳
       } else if (count === 2) {
-        fortuneText = '吉星高照 ✨'; // 两张正面 → ✨
+        fortuneText = '星辰为你低语 ✨'; // 吉星高照
       } else if (count === 1) {
-        fortuneText = '稳中有进 🌞'; // 一张正面 → 🌞
+        fortuneText = '微光已在路上 🌞'; // 稳中有进
       } else {
-        fortuneText = '静待转机 🌙'; // 无正面 → 🌙
+        fortuneText = '静待月升之时 🌙'; // 静待转机
       }
 
       document.getElementById('overallFortune').textContent = fortuneText;

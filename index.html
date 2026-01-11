@@ -116,7 +116,7 @@
       font-style: italic;
       max-width: 460px;
       line-height: 1.6;
-      text-align: center; /* 居中 */
+      text-align: center;
     }
 
     .cards-container {
@@ -143,10 +143,11 @@
     }
 
     .card-back::before {
-      content: "🂠";
+      content: "★";
       font-size: 32px;
       color: #c9a968;
       opacity: 0.7;
+      text-shadow: 0 0 8px rgba(201, 169, 104, 0.5);
     }
 
     .card-back:hover {
@@ -156,18 +157,7 @@
       background: linear-gradient(135deg, #35225a, #22123a);
     }
 
-    .third-draw .card-back {
-      border-color: #d4b77a;
-      background: linear-gradient(135deg, #2a1b45, #180a28);
-    }
-    .third-draw .card-back::before {
-      content: "🃏";
-      color: #e0c9a8;
-    }
-    .third-draw .card-back:hover {
-      transform: translateY(-10px) scale(1.08);
-      box-shadow: 0 10px 22px rgba(212, 183, 122, 0.4);
-    }
+    /* 移除了 .third-draw 的特殊样式，三次抽牌卡背完全一致 */
 
     @media (max-width: 480px) {
       .card-back {
@@ -275,7 +265,7 @@
       background: rgba(15, 8, 25, 0.6);
       border-radius: 10px;
       border: 1px dashed #5a4070;
-      text-align: center; /* 居中 */
+      text-align: center;
       max-width: 400px;
       margin-left: auto;
       margin-right: auto;
@@ -398,7 +388,7 @@
       <div class="cards-container" id="secondCards"></div>
     </div>
 
-    <div id="thirdDraw" class="screen third-draw">
+    <div id="thirdDraw" class="screen">
       <h1>第三重&nbsp;·&nbsp;祝福之牌</h1>
       <div class="instructions">哪一张正为你悄然祝福？</div>
       <div class="cards-container" id="thirdCards"></div>
@@ -639,7 +629,6 @@
     }
 
     function restart() {
-      // 不重置，仅提示明日再来
       alert('今日已抽取，明日再抽日运。\n塔罗日运每日限一次，静待时光流转。');
     }
 

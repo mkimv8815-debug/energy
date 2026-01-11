@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>塔罗日运</title>
+  <title>塔罗日运 · 三重指引</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * {
@@ -34,8 +34,7 @@
       z-index: 2;
     }
 
-    /* —————— 关键：禁用两端对齐，恢复自然排版 —————— */
-    .container,
+    .screen,
     .poem,
     .instructions,
     .section-content,
@@ -43,10 +42,10 @@
     .share-prompt {
       word-break: keep-all;
       overflow-wrap: break-word;
-      hyphens: none; /* 中文无需连字符 */
+      hyphens: none;
       orphans: 2;
       widows: 2;
-      text-align: left; /* ← 核心修改：取消 justify */
+      text-align: left;
       margin-left: auto;
       margin-right: auto;
     }
@@ -153,6 +152,20 @@
       background: linear-gradient(135deg, #35225a, #22123a);
     }
 
+    /* 第三轮特殊样式 */
+    .third-draw .card-back {
+      border-color: #d4b77a;
+      background: linear-gradient(135deg, #2a1b45, #180a28);
+    }
+    .third-draw .card-back::before {
+      content: "🃏";
+      color: #e0c9a8;
+    }
+    .third-draw .card-back:hover {
+      transform: translateY(-10px) scale(1.08);
+      box-shadow: 0 10px 22px rgba(212, 183, 122, 0.4);
+    }
+
     @media (max-width: 480px) {
       .card-back {
         width: 70px;
@@ -160,7 +173,6 @@
       }
     }
 
-    /* —————— 结果页：安全排版区域 —————— */
     .result-header {
       position: relative;
       margin-bottom: 30px;
@@ -221,13 +233,11 @@
       line-height: 1.85;
       color: #e8d8f0;
       padding: 0 12px;
-      /* ← 已移除 text-align: justify */
     }
 
     .section-content p,
     .combined-message p {
       margin: 0.8em 0;
-      /* 禁用 hanging-punctuation（部分浏览器支持差） */
     }
 
     .section-content strong {
@@ -349,44 +359,60 @@
   <div id="particles"></div>
   
   <div class="container">
+    <!-- 欢迎页 -->
     <div id="welcome" class="screen active">
-      <h1>塔罗日运</h1>
+      <h1>塔罗日运 · 三重指引</h1>
       <div class="poem">
-        <span class="poem-line">星河流转，牌面只为你<span class="nowrap">显影一次</span></span>
-        <span class="poem-line">心有所问，便<span class="nowrap">轻轻一触</span></span>
-        <span class="poem-line">塔罗是映照内心的镜，<span class="nowrap">而非预言的工具</span></span>
-        <span class="poem-line">每日最多抽取三次，让答案<span class="nowrap">在静默中生长</span></span>
-        <span class="poem-line">别急着追问未来——<span class="nowrap">你此刻的觉察，已是光</span></span>
+        <span class="poem-line">第一张牌，照见你今日的<span class="nowrap">外在课题</span></span>
+        <span class="poem-line">第二张牌，映出你内心的<span class="nowrap">真实渴望</span></span>
+        <span class="poem-line">第三张牌，赠你一份<span class="nowrap">宇宙的祝福</span></span>
+        <span class="poem-line">静心三次呼吸，<span class="nowrap">让答案自然浮现</span></span>
+        <span class="poem-line">你值得被温柔指引——<span class="nowrap">此刻，开始吧</span></span>
       </div>
-      <button onclick="startShuffle('first')">开启今日指引</button>
+      <button onclick="startStage('first')">开启三重指引</button>
     </div>
 
+    <!-- 第一抽：外在行动 -->
     <div id="firstDraw" class="screen">
-      <h1>择一牌</h1>
-      <div class="instructions">哪一张在呼唤你的名字？</div>
+      <h1>第一重 · 行动之牌</h1>
+      <div class="instructions">哪一张在提醒你今日该迈出的一步？</div>
       <div class="cards-container" id="firstCards"></div>
     </div>
 
+    <!-- 第二抽：内在感受 -->
     <div id="secondDraw" class="screen">
-      <h1>再择一牌</h1>
-      <div class="instructions">让能量完整流动</div>
+      <h1>第二重 · 心灵之牌</h1>
+      <div class="instructions">哪一张在轻抚你今日的情绪暗流？</div>
       <div class="cards-container" id="secondCards"></div>
     </div>
 
+    <!-- 第三抽：高维祝福 -->
+    <div id="thirdDraw" class="screen third-draw">
+      <h1>第三重 · 祝福之牌</h1>
+      <div class="instructions">哪一张正为你洒下星光？</div>
+      <div class="cards-container" id="thirdCards"></div>
+    </div>
+
+    <!-- 结果页 -->
     <div id="combinedResult" class="screen">
       <div class="result-header">
-        <div class="result-title">今日塔罗指引</div>
+        <div class="result-title">今日三重指引</div>
         <div class="fortune-badge" id="overallFortune"></div>
       </div>
 
       <div class="result-section">
-        <div class="section-label">✨ 显化之牌</div>
+        <div class="section-label">🚶‍♀️ 行动之牌 · 外在课题</div>
         <div class="section-content" id="mainCardText"></div>
       </div>
 
       <div class="result-section">
-        <div class="section-label">🌙 潜流之牌</div>
+        <div class="section-label">🌊 心灵之牌 · 内在渴望</div>
         <div class="section-content" id="supportCardText"></div>
+      </div>
+
+      <div class="result-section">
+        <div class="section-label">✨ 祝福之牌 · 高维恩典</div>
+        <div class="section-content" id="thirdCardText"></div>
       </div>
 
       <div class="divider"></div>
@@ -405,61 +431,34 @@
   </div>
 
   <script>
-    // —————— 全新：简洁可靠的中文防孤字处理器 ——————
+    // 中文防孤字处理（安全绑定标点）
     function smartFormatChinese(rawText) {
-      // 按双换行分段
       const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
-
-      const processedParagraphs = paragraphs.map(paragraph => {
+      return paragraphs.map(paragraph => {
         let text = paragraph.replace(/\s+/g, ' ').trim();
-
-        // 1. 所有中文句末标点（。！？）与前一个非空白字符绑定，防止行首标点
-        // 使用 &nbsp; 而非 \u2060，兼容性更好
+        // 绑定句末标点
         text = text.replace(/([^\s])([。！？])/g, '$1&nbsp;$2');
-
-        // 2. 防止末尾出现 ≤3 字符的“孤岛”（如“光。”、“你好！”）
-        // 匹配结尾的：汉字 + [。！？] 或 汉字汉字 + [。！？]
-        const tailMatch = text.match(/([\u4e00-\u9fff]{1,2}[。！？])$/);
-        if (tailMatch) {
-          const tail = tailMatch[0];
-          const idx = text.lastIndexOf(tail);
-          if (idx > 0) {
-            const before = text.substring(0, idx);
-            // 在倒数第二个字符前插入 &nbsp;
-            const chars = [...tail];
-            if (chars.length >= 2) {
-              chars[0] = '&nbsp;' + chars[0]; // 把整个短尾绑定
-              text = before + chars.join('');
-            }
-          }
-        }
-
-        // 3. 移除可能残留的行首标点（极端情况兜底）
+        // 防止行首标点
         text = text.replace(/^([。！？])/g, '&nbsp;$1');
-
         return `<p>${text}</p>`;
-      });
-
-      return processedParagraphs.join('');
+      }).join('');
     }
 
-    // 页面切换
-    function showScreen(screenId) {
+    // 切换页面
+    function showScreen(id) {
       document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
+      document.getElementById(id).classList.add('active');
     }
 
-    // 粒子动效（不变）
-    const particlesContainer = document.getElementById('particles');
-    function createParticles(x, y) {
-      const colors = ['#c9a968', '#d4b77a', '#a68560'];
+    // 粒子效果（支持颜色参数）
+    function createParticles(x, y, color = '#c9a968') {
       for (let i = 0; i < 12; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         particle.style.left = x + 'px';
         particle.style.top = y + 'px';
-        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        particlesContainer.appendChild(particle);
+        particle.style.backgroundColor = color;
+        document.getElementById('particles').appendChild(particle);
 
         const angle = Math.random() * Math.PI * 2;
         const speed = 70 + Math.random() * 100;
@@ -467,30 +466,23 @@
         const vy = Math.sin(angle) * speed;
 
         let opacity = 1;
-        let size = 2 + Math.random() * 3;
-        particle.style.width = size + 'px';
-        particle.style.height = size + 'px';
-
         const startTime = performance.now();
         const animate = (currentTime) => {
           const elapsed = (currentTime - startTime) / 1000;
           const progress = Math.min(elapsed / 1.2, 1);
+          opacity = 1 - progress;
           const currentX = x + vx * elapsed;
           const currentY = y + vy * elapsed;
-          opacity = 1 - progress;
           particle.style.opacity = opacity;
           particle.style.transform = `translate(${currentX - x}px, ${currentY - y}px)`;
-          if (opacity > 0) {
-            requestAnimationFrame(animate);
-          } else {
-            particle.remove();
-          }
+          if (opacity > 0) requestAnimationFrame(animate);
+          else particle.remove();
         };
         requestAnimationFrame(animate);
       }
     }
 
-    // 卡牌数据（不变）
+    // 塔罗牌库（精简但有深度）
     const tarotCards = [
       { name: "愚者", symbol: "🃏", fortuneLevel: 3, insight: "启程", text: "今日宜迈出那一步——哪怕没有地图。\n\n宇宙正为你铺一条看不见的路，只需相信脚下的土地。\n\n此刻不妨写下一件你想尝试却犹豫的事，然后对它轻声说：“我陪你。”" },
       { name: "魔术师", symbol: "⚡", fortuneLevel: 3, insight: "显化", text: "你拥有所需的一切资源，就在手边。\n\n今日，你的意图会快速成形，请清晰地说出你想要什么。\n\n整理桌面，把三样常用物品摆成三角——这是你的能量阵。" },
@@ -523,10 +515,9 @@
       0: ["🌑 暗处育光之日", "🪨 重建根基之时", "🌧️ 雨后自有虹"]
     };
 
-    let firstCard = null;
-    let secondCard = null;
+    let firstCard = null, secondCard = null, thirdCard = null;
 
-    function startShuffle(stage) {
+    function startStage(stage) {
       let candidates = [];
       let used = new Set();
       while (candidates.length < 3) {
@@ -537,64 +528,71 @@
         }
       }
 
-      const containerId = stage === 'first' ? 'firstCards' : 'secondCards';
-      const screenId = stage === 'first' ? 'firstDraw' : 'secondDraw';
+      const containerId = stage === 'first' ? 'firstCards' : 
+                         stage === 'second' ? 'secondCards' : 'thirdCards';
+      const screenId = stage === 'first' ? 'firstDraw' :
+                       stage === 'second' ? 'secondDraw' : 'thirdDraw';
 
       showScreen(screenId);
 
       const container = document.getElementById(containerId);
       container.innerHTML = '';
-      candidates.forEach((card, index) => {
+      candidates.forEach(card => {
         const cardEl = document.createElement('div');
         cardEl.className = 'card-back';
         cardEl.onclick = (e) => {
           const rect = cardEl.getBoundingClientRect();
           const x = rect.left + rect.width / 2;
           const y = rect.top + rect.height / 2;
-          createParticles(x, y);
-          selectCard(card, stage);
+          let color = '#c9a968';
+          if (stage === 'third') color = '#d4b77a';
+          createParticles(x, y, color);
+          
+          if (stage === 'first') {
+            firstCard = card;
+            setTimeout(() => startStage('second'), 300);
+          } else if (stage === 'second') {
+            secondCard = card;
+            setTimeout(() => startStage('third'), 300);
+          } else {
+            thirdCard = card;
+            showResult();
+          }
         };
         container.appendChild(cardEl);
       });
     }
 
-    function selectCard(card, stage) {
-      if (stage === 'first') {
-        firstCard = card;
-        setTimeout(() => startShuffle('second'), 300);
-      } else {
-        secondCard = card;
-        showResult();
-      }
-    }
-
-    function getOverallFortune(l1, l2) {
-      const maxL = Math.max(l1, l2);
-      const minL = Math.min(l1, l2);
-      let level = maxL === 3 ? 3 : (maxL === 2 ? 2 : (minL <= 0 && maxL <= 1 ? 0 : 1));
+    function getOverallFortune(l1, l2, l3) {
+      const avg = (l1 + l2 + l3) / 3;
+      let level;
+      if (avg >= 2.3) level = 3;
+      else if (avg >= 1.3) level = 2;
+      else if (avg >= 0.5) level = 1;
+      else level = 0;
       const pool = fortunePhrases[level];
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
-    function generateCombinedMessage(card1, card2) {
+    function generateCombinedMessage(c1, c2, c3) {
       const messages = [
-        `当「${card1.insight}」遇见「${card2.insight}」，能量交织成光：外在行动与内在节奏，正达成神圣和谐。`,
-        `「${card1.insight}」点燃火种，「${card2.insight}」护持微光。今日，你既是旅人，也是归处。`,
-        `塔罗借这两张牌低语：你已被看见，被支持，被深深祝福着。`,
-        `刚柔并济，动静相生——这正是你今日最强大的状态。`,
-        `不必追问意义，你此刻的存在，已是答案。`
+        `外在的「${c1.insight}」、内在的「${c2.insight}」与高维的「${c3.insight}」共同编织今日的能量场。你无需完美，只需真实地活在当下。`,
+        `行动带来改变，感受带来深度，祝福带来信心——三者合一，你已拥有完整的答案。`,
+        `宇宙借这三张牌告诉你：你值得被看见、被理解、被深深爱着。今日，请优先照顾自己的心。`,
+        `不必急于“解决”什么。允许自己同时拥有力量与脆弱，野心与休息，梦想与平凡——这才是成熟女性的自由。`,
+        `这三张牌是一封来自未来的信：你正在成为那个你一直想成为的人。慢一点，没关系。`
       ];
       return messages[Math.floor(Math.random() * messages.length)];
     }
 
     function showResult() {
-      const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel);
-      const combinedGuidance = generateCombinedMessage(firstCard, secondCard);
+      const overall = getOverallFortune(firstCard.fortuneLevel, secondCard.fortuneLevel, thirdCard.fortuneLevel);
+      const combinedGuidance = generateCombinedMessage(firstCard, secondCard, thirdCard);
 
-      // 使用优化后的排版函数
       document.getElementById('overallFortune').textContent = overall;
       document.getElementById('mainCardText').innerHTML = `<strong>${firstCard.name}</strong>` + smartFormatChinese(firstCard.text);
       document.getElementById('supportCardText').innerHTML = `<strong>${secondCard.name}</strong>` + smartFormatChinese(secondCard.text);
+      document.getElementById('thirdCardText').innerHTML = `<strong>${thirdCard.name}</strong>` + smartFormatChinese(thirdCard.text);
       document.getElementById('combinedMessage').innerHTML = smartFormatChinese(combinedGuidance);
 
       showScreen('combinedResult');
